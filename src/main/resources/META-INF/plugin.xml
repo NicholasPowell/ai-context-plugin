@@ -1,0 +1,35 @@
+<idea-plugin>
+    <id>com.niloda.aicontext</id>
+    <name>Ai-Context</name>
+    <vendor email="nicholas.powell@gmail.com" url="https://github.com/NicholasPowell">Niloda</vendor>
+    <description><![CDATA[
+        An IntelliJ plugin that sends code context to Ollama (Llama3) for AI-driven analysis.
+        Supports selected text, current file, open tabs, and queued file processing.
+    ]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <actions>
+        <action id="AiContext.GetContext" class="com.niloda.aicontext.GetContextAction"
+                text="Get AI Context" description="Sends code context to Ollama for analysis">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt A"/>
+        </action>
+        <action id="AiContext.QueueFile" class="com.niloda.aicontext.QueueFileAction"
+                text="Queue File for AI" description="Adds the current file to the AI processing queue">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt Q"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable parentId="tools"
+                                 id="AiContextSettings"
+                                 instance="com.niloda.aicontext.AiContextSettings"
+                                 displayName="Ai-Context"/>
+        <toolWindow id="AI Context Output"
+                    anchor="bottom"
+                    icon="AllIcons.General.Information"
+                    factoryClass="com.niloda.aicontext.AiContextToolWindowFactory"/>
+    </extensions>
+</idea-plugin>
