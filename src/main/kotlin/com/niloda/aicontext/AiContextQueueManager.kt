@@ -23,7 +23,12 @@ object AiContextQueueManager {
     val queue = ConcurrentLinkedQueue<QueueItem>()
     private val activeTasks = mutableMapOf<PsiFile, Pair<Task.Backgroundable, ProgressIndicator>>()
 
-    data class QueueItem(val file: PsiFile, var status: Status = Status.PENDING, var startTime: Long? = null) {
+    data class QueueItem(
+        val file: PsiFile,
+        var status: Status = Status.PENDING,
+        var startTime: Long? = null,
+        var prompt: String = ""
+    ) {
         enum class Status { PENDING, RUNNING, DONE, ERROR, CANCELLED }
 
         fun getElapsedTime(): String {
@@ -55,44 +60,41 @@ object AiContextQueueManager {
         queue.add(item)
         AiContextToolWindow.addToQueue(item, file.project)
         AiContextToolWindow.updateQueue(file.project)
-        processNext(file.project)
     }
 
-    private fun processNext(project: Project) {
-        val nextItem = queue.find { it.status == QueueItem.Status.PENDING } ?: return
-        nextItem.status = QueueItem.Status.RUNNING
-        nextItem.startTime = System.currentTimeMillis()
+    fun processFile(item: QueueItem, project: Project) {
+        if (item.status != QueueItem.Status.PENDING) return // Only process pending items
+        item.status = QueueItem.Status.RUNNING
+        item.startTime = System.currentTimeMillis()
         AiContextToolWindow.updateQueue(project)
 
-        val task = object : Task.Backgroundable(project, "Processing ${nextItem.file.name}", true) {
+        val task = object : Task.Backgroundable(project, "Processing ${item.file.name}", true) {
             private lateinit var indicatorRef: ProgressIndicator
 
             override fun run(indicator: ProgressIndicator) {
                 indicatorRef = indicator
                 if (indicator.isCanceled) return
 
-                val prompt = AiContextState.promptTemplate + (nextItem.file.text ?: "")
+                val prompt = item.prompt + (item.file.text ?: "")
                 val response = sendToOllama(prompt, project, indicator)
-                nextItem.status = if (response != null) QueueItem.Status.DONE else QueueItem.Status.ERROR
-                nextItem.startTime = null
-                AiContextToolWindow.appendOutput("File: ${nextItem.getDisplayPath(project)}\nPrompt:\n$prompt\n\nResponse:\n${response ?: "Error"}\n\n")
+                item.status = if (response != null) QueueItem.Status.DONE else QueueItem.Status.ERROR
+                item.startTime = null
+                AiContextToolWindow.appendOutput("File: ${item.getDisplayPath(project)}\nPrompt:\n$prompt\n\nResponse:\n${response ?: "Error"}\n\n")
                 AiContextToolWindow.updateQueue(project)
-                activeTasks.remove(nextItem.file)
-                processNext(project)
+                activeTasks.remove(item.file)
             }
 
             override fun onCancel() {
-                nextItem.status = QueueItem.Status.CANCELLED
-                nextItem.startTime = null
+                item.status = QueueItem.Status.CANCELLED
+                item.startTime = null
                 AiContextToolWindow.updateQueue(project)
-                activeTasks.remove(nextItem.file)
-                processNext(project)
+                activeTasks.remove(item.file)
             }
         }
         ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, object : ProgressIndicatorBase() {
             override fun start() {
                 super.start()
-                activeTasks[nextItem.file] = task to this
+                activeTasks[item.file] = task to this
             }
         })
     }

@@ -23,10 +23,6 @@
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationConfigurable parentId="tools"
-                                 id="AiContextSettings"
-                                 instance="com.niloda.aicontext.AiContextSettings"
-                                 displayName="Ai-Context"/>
         <toolWindow id="AI Context Output"
                     anchor="bottom"
                     icon="AllIcons.General.Information"

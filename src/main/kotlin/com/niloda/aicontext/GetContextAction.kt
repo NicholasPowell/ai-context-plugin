@@ -10,6 +10,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.psi.PsiFile
 import okhttp3.MediaType.Companion.toMediaType
@@ -21,8 +22,8 @@ import java.util.concurrent.TimeUnit
 
 class GetContextAction : AnAction() {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
+        .connectTimeout(1800, TimeUnit.SECONDS)
+        .readTimeout(1800, TimeUnit.SECONDS)
         .build()
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -36,16 +37,15 @@ class GetContextAction : AnAction() {
             return
         }
 
-        // Run the Ollama request in a background task
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Fetching AI Context") {
             override fun run(indicator: ProgressIndicator) {
                 val statusBar = WindowManager.getInstance().getStatusBar(project)
                 statusBar?.setInfo("Processing AI request...")
 
-                val prompt = AiContextState.promptTemplate + context
+                AiContextToolWindow.appendOutput("Sending request with ${context.length} chars...\n")
+                val prompt = "Explain this code:\n" + context // Default prompt
                 val response = sendToOllama(prompt, project)
 
-                // Update UI on the EDT (Event Dispatch Thread)
                 com.intellij.util.ui.UIUtil.invokeLaterIfNeeded {
                     if (response != null) {
                         AiContextToolWindow.clearOutput()
