@@ -15,10 +15,13 @@ import com.niloda.aicontext.model.IFile
 import com.niloda.aicontext.model.IFileEditorManager
 import com.niloda.aicontext.model.IProject
 import java.util.concurrent.ConcurrentLinkedQueue
+import com.niloda.aicontext.AiContextToolWindow
+import com.intellij.util.ui.UIUtil
+import com.niloda.aicontext.model.AiContextService.QueueItem
 
 object AiContextServiceImpl : AiContextService {
 
-    override val queue = ConcurrentLinkedQueue<AiContextService.QueueItem>()
+    override val queue = ConcurrentLinkedQueue<QueueItem>()
     private val activeTasks = mutableMapOf<IFile, Pair<Task.Backgroundable, ProgressIndicator>>()
     private val aiSender: AiSender = AiSender()
 
@@ -77,58 +80,96 @@ object AiContextServiceImpl : AiContextService {
         val existingItem = queue.find { it.file == file }
         if (existingItem != null) {
             queue.remove(existingItem)
-            if (existingItem.status == AiContextService.QueueItem.Status.RUNNING) {
+            if (existingItem.status == QueueItem.Status.RUNNING) {
                 terminate(file)
             }
         }
-        val item = AiContextService.QueueItem(file)
+        val item = QueueItem(file)
         queue.add(item)
         println("Queued file: ${file.name}, Queue size: ${queue.size}")
     }
 
-    override fun processFile(item: AiContextService.QueueItem, project: IProject) {
-        if (item.status != AiContextService.QueueItem.Status.PENDING) return
-        item.status = AiContextService.QueueItem.Status.RUNNING
+    override fun processFile(item: QueueItem, project: IProject) {
+        if (item.status != QueueItem.Status.PENDING) return
+        item.status = QueueItem.Status.RUNNING
         item.startTime = System.currentTimeMillis()
 
         val task = object :
             Task.Backgroundable((project as IntelliJProjectAdapter).project, "Processing ${item.file.name}", true) {
-            private lateinit var indicatorRef: ProgressIndicator
-
             override fun run(indicator: ProgressIndicator) {
-                indicatorRef = indicator
-                if (indicator.isCanceled) return
+                if (indicator.isCanceled) {
+                    println("Task for ${item.file.name} detected cancellation before starting")
+                    handleCancellation(item, project)
+                    return
+                }
 
                 val prompt = item.prompt + (item.file.text ?: "")
-                val response = sendToAi(prompt, project)
+                val response = if (!indicator.isCanceled) sendToAi(prompt, project) else null
+                if (indicator.isCanceled) {
+                    println("Task for ${item.file.name} cancelled during execution")
+                    handleCancellation(item, project)
+                    return
+                }
+
                 item.status =
-                    if (response != null) AiContextService.QueueItem.Status.DONE else AiContextService.QueueItem.Status.ERROR
+                    if (response != null) QueueItem.Status.DONE else QueueItem.Status.ERROR
                 item.startTime = null
                 activeTasks.remove(item.file)
+
+                UIUtil.invokeLaterIfNeeded {
+                    if (response != null) {
+                        AiContextToolWindow.appendOutput(
+                            "File: ${item.getDisplayPath(project)}\nPrompt:\n${item.prompt}\n\nResponse:\n$response\n\n"
+                        )
+                    } else {
+                        AiContextToolWindow.appendOutput(
+                            "File: ${item.getDisplayPath(project)}\nError: Failed to process file\n\n"
+                        )
+                    }
+                    AiContextToolWindow.updateQueue(project) // Ensure UI reflects completion
+                }
+            }
+
+            private fun handleCancellation(item: QueueItem, project: IProject) {
+                item.status = QueueItem.Status.CANCELLED
+                item.startTime = null
+                activeTasks.remove(item.file)
+                UIUtil.invokeLaterIfNeeded {
+                    AiContextToolWindow.appendOutput("File: ${item.getDisplayPath(project)}\nCancelled\n\n")
+                    AiContextToolWindow.updateQueue(project) // Immediate UI update
+                }
             }
 
             override fun onCancel() {
-                item.status = AiContextService.QueueItem.Status.CANCELLED
-                item.startTime = null
-                activeTasks.remove(item.file)
+                println("onCancel triggered for ${item.file.name}")
+                handleCancellation(item, project)
             }
         }
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, object : ProgressIndicatorBase() {
-            override fun start() {
-                super.start()
-                activeTasks[item.file] = task to this
-            }
+        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, ProgressIndicatorBase().apply {
+            activeTasks[item.file] = task to this
+            println("Task started for ${item.file.name}")
         })
     }
 
     override fun terminate(file: IFile) {
-        activeTasks[file]?.second?.cancel()
+        val (task, indicator) = activeTasks[file] ?: return
+        println("Terminating task for ${file.name}")
+        indicator.cancel() // Mark the indicator as canceled
+        activeTasks.remove(file) // Remove immediately to prevent re-processing
+        val item = queue.find { it.file == file }
+        if (item != null && item.status == QueueItem.Status.RUNNING) {
+            item.status = QueueItem.Status.CANCELLED
+            item.startTime = null
+            UIUtil.invokeLaterIfNeeded {
+                AiContextToolWindow.appendOutput("File: ${item.getDisplayPath((task.project as Project).adapt())}\nCancelled\n\n")
+                AiContextToolWindow.updateQueue((task.project as Project).adapt())
+            }
+        }
     }
 
-    override fun getQueueStatus(): List<AiContextService.QueueItem> = queue.toList()
+    override fun getQueueStatus(): List<QueueItem> = queue.toList()
 }
 
-// Helper to adapt PsiFile to IFile (since PsiFile isn't directly adaptable due to IntelliJ specifics)
 fun psiFileAdapter(project: Project, virtualFile: com.intellij.openapi.vfs.VirtualFile): PsiFile {
     val project = FileEditorManager.getInstance(project).project
     return com.intellij.psi.PsiManager.getInstance(project).findFile(virtualFile)!!

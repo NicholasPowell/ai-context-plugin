@@ -42,16 +42,27 @@ class AiContextToolWindowFactory : ToolWindowFactory {
             columnModel.getColumn(3).maxWidth = 100
             columnModel.getColumn(4).maxWidth = 80
 
-            addMouseListener(object: MouseAdapter() {
+            addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
                     val row = queueTable.rowAtPoint(e.point)
                     val col = queueTable.columnAtPoint(e.point)
                     val item = aiService.queue.elementAtOrNull(row)
-                    if(item != null && col == 2) {
-                        if (item.status == AiContextService.QueueItem.Status.PENDING) {
-                            AiContextQueueManager.processFile(item, project.adapt())
-                        } else if (item.status == AiContextService.QueueItem.Status.RUNNING) {
-                            AiContextQueueManager.terminate(item.file)
+                    if (item != null && col == 2) {
+                        when (item.status) {
+                            AiContextService.QueueItem.Status.PENDING -> {
+                                println("Run clicked for ${item.file.name}")
+                                AiContextQueueManager.processFile(item, project.adapt())
+                            }
+                            AiContextService.QueueItem.Status.RUNNING -> {
+                                println("Cancel clicked for ${item.file.name}")
+                                AiContextQueueManager.terminate(item.file)
+                                queueModel.setValueAt("Run", row, 2)
+                                queueModel.setValueAt("CANCELLED", row, 3)
+                                queueTable.repaint()
+                            }
+                            else -> {
+                                println("No action for status ${item.status} on ${item.file.name}")
+                            }
                         }
                     }
                 }
@@ -64,8 +75,12 @@ class AiContextToolWindowFactory : ToolWindowFactory {
                     val item = aiService.queue.elementAtOrNull(row) ?: return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
                     return when (column) {
                         2 -> {
-                            val button = if (item.status == AiContextService.QueueItem.Status.PENDING) JButton("Run") else JButton("Cancel")
-                            button.isEnabled = true
+                            val button = when (item.status) {
+                                AiContextService.QueueItem.Status.PENDING -> JButton("Run")
+                                AiContextService.QueueItem.Status.RUNNING -> JButton("Cancel")
+                                else -> JButton("Run").apply { isEnabled = false }
+                            }
+                            button.isEnabled = item.status == AiContextService.QueueItem.Status.PENDING || item.status == AiContextService.QueueItem.Status.RUNNING
                             button
                         }
                         else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
@@ -144,6 +159,14 @@ object AiContextToolWindow {
     }
 
     fun addToQueue(item: AiContextService.QueueItem, project: IProject) {
+        // Check if an item for the same file already exists and replace it
+        val existingRow = (0 until queueModel.rowCount).find { row ->
+            queueModel.getValueAt(row, 0) == item.getDisplayPath(project)
+        }
+        if (existingRow != null) {
+            println("Replacing UI row for ${item.file.name} at row $existingRow")
+            queueModel.removeRow(existingRow)
+        }
         queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, "Run", item.status.toString(), item.getElapsedTime()))
         println("Added to queue UI: ${item.file.name}")
     }
@@ -152,7 +175,11 @@ object AiContextToolWindow {
         queueModel.rowCount = 0
         aiService.queue.forEach { item ->
             queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt,
-                if (item.status == AiContextService.QueueItem.Status.PENDING) "Run" else "Cancel",
+                when (item.status) {
+                    AiContextService.QueueItem.Status.PENDING -> "Run"
+                    AiContextService.QueueItem.Status.RUNNING -> "Cancel"
+                    else -> "Run"
+                },
                 item.status.toString(), item.getElapsedTime()))
         }
         queueTable.repaint()
