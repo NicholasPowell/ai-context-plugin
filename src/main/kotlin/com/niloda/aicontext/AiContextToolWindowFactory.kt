@@ -6,20 +6,32 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.table.JBTable
+import com.niloda.aicontext.AiContextQueueManager.aiService
+import com.niloda.aicontext.impl.adapt
+import com.niloda.aicontext.model.AiContextService
+import com.niloda.aicontext.model.IProject
 import java.awt.BorderLayout
-import java.awt.Component
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.util.Timer
 import java.util.TimerTask
-import javax.swing.*
+import javax.swing.DefaultCellEditor
+import javax.swing.JButton
+import javax.swing.JPanel
+import javax.swing.JTable
+import javax.swing.JTextArea
+import javax.swing.JTextField
+import javax.swing.SwingUtilities
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
 class AiContextToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+        println("Initializing tool window for project: ${project.name}")
         val panel = JPanel(BorderLayout())
 
         val queueModel = object : DefaultTableModel(arrayOf("File", "Prompt", "Action", "Status", "Time"), 0) {
-            override fun isCellEditable(row: Int, column: Int): Boolean = column == 1 // Only Prompt editable
+            override fun isCellEditable(row: Int, column: Int): Boolean = column == 1
         }
         val queueTable = JBTable(queueModel)
         queueTable.apply {
@@ -30,23 +42,31 @@ class AiContextToolWindowFactory : ToolWindowFactory {
             columnModel.getColumn(3).maxWidth = 100
             columnModel.getColumn(4).maxWidth = 80
 
+            addMouseListener(object: MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent) {
+                    val row = queueTable.rowAtPoint(e.point)
+                    val col = queueTable.columnAtPoint(e.point)
+                    val item = aiService.queue.elementAtOrNull(row)
+                    if(item != null && col == 2) {
+                        if (item.status == AiContextService.QueueItem.Status.PENDING) {
+                            AiContextQueueManager.processFile(item, project.adapt())
+                        } else if (item.status == AiContextService.QueueItem.Status.RUNNING) {
+                            AiContextQueueManager.terminate(item.file)
+                        }
+                    }
+                }
+            })
+
+
             setDefaultRenderer(Any::class.java, object : DefaultTableCellRenderer() {
                 override fun getTableCellRendererComponent(
                     table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
-                ): Component {
-                    val item = AiContextQueueManager.queue.elementAtOrNull(row) ?: return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+                ): java.awt.Component {
+                    val item = aiService.queue.elementAtOrNull(row) ?: return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
                     return when (column) {
                         2 -> {
-                            val button = if (item.status == AiContextQueueManager.QueueItem.Status.PENDING) JButton("Run") else JButton("Cancel")
+                            val button = if (item.status == AiContextService.QueueItem.Status.PENDING) JButton("Run") else JButton("Cancel")
                             button.isEnabled = true
-                            button.addActionListener {
-                                println("Button clicked for ${item.file?.name ?: "unknown"} - Status: ${item.status}")
-                                if (item.status == AiContextQueueManager.QueueItem.Status.PENDING) {
-                                    AiContextQueueManager.processFile(item, project)
-                                } else if (item.status == AiContextQueueManager.QueueItem.Status.RUNNING) {
-                                    AiContextQueueManager.terminate(item.file!!)
-                                }
-                            }
                             button
                         }
                         else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
@@ -55,14 +75,13 @@ class AiContextToolWindowFactory : ToolWindowFactory {
             })
 
             setDefaultEditor(Any::class.java, object : DefaultCellEditor(JTextField()) {
-                override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): Component {
-                    val item = AiContextQueueManager.queue.elementAtOrNull(row) ?: return super.getTableCellEditorComponent(table, value, isSelected, row, column)
+                override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): java.awt.Component {
+                    val item = aiService.queue.elementAtOrNull(row) ?: return super.getTableCellEditorComponent(table, value, isSelected, row, column)
                     return when (column) {
                         1 -> {
                             val textField = JTextField(item.prompt)
                             textField.addActionListener {
                                 item.prompt = textField.text
-                                println("Prompt updated for ${item.file?.name ?: "unknown"}: ${item.prompt}")
                             }
                             textField
                         }
@@ -73,13 +92,12 @@ class AiContextToolWindowFactory : ToolWindowFactory {
                 override fun stopCellEditing(): Boolean {
                     val success = super.stopCellEditing()
                     if (success) {
-                        val row = queueTable.editingRow
-                        if (row >= 0 && queueTable.editingColumn == 1) {
-                            val item = AiContextQueueManager.queue.elementAtOrNull(row)
+                        val row = editingRow
+                        if (row >= 0 && editingColumn == 1) {
+                            val item = aiService.queue.elementAtOrNull(row)
                             item?.prompt = (getCellEditorValue() as String)
                             queueModel.setValueAt(item?.prompt, row, 1)
                             queueTable.repaint()
-                            println("Editing stopped - Prompt set to: ${item?.prompt}")
                         }
                     }
                     return success
@@ -106,7 +124,7 @@ class AiContextToolWindowFactory : ToolWindowFactory {
         timer.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
                 SwingUtilities.invokeLater {
-                    AiContextToolWindow.updateQueue(project)
+                    AiContextToolWindow.updateQueue(project.adapt())
                 }
             }
         }, 0, 1000)
@@ -126,16 +144,20 @@ object AiContextToolWindow {
         project = proj
     }
 
-    fun addToQueue(item: AiContextQueueManager.QueueItem, project: Project) {
+    fun addToQueue(item: AiContextService.QueueItem, project: IProject) {
         queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, "Run", item.status.toString(), item.getElapsedTime()))
-        println("Added to queue: ${item.file?.name ?: "unknown"} with prompt: ${item.prompt}")
+        println("Added to queue UI: ${item.file.name}")
     }
 
-    fun updateQueue(project: Project) {
+    fun updateQueue(project: IProject) {
         queueModel.rowCount = 0
-        AiContextQueueManager.queue.forEach { item ->
-            queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, if (item.status == AiContextQueueManager.QueueItem.Status.PENDING) "Run" else "Cancel", item.status.toString(), item.getElapsedTime()))
+        aiService.queue.forEach { item ->
+            queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt,
+                if (item.status == AiContextService.QueueItem.Status.PENDING) "Run" else "Cancel",
+                item.status.toString(), item.getElapsedTime()))
         }
+        queueTable.repaint()
+        println("Updated queue UI, rows: ${queueModel.rowCount}")
     }
 
     fun appendOutput(text: String) {
