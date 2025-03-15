@@ -14,14 +14,12 @@ class RunAction : AnAction() {
         if (selectedText.isNullOrBlank()) {
             Messages.showMessageDialog(project, "Please select some code to run!", "Run This", Messages.getErrorIcon())
         } else {
-            // Placeholder: Just show the selected text for now
             Messages.showMessageDialog(project, "Running:\n$selectedText", "Run This", Messages.getInformationIcon())
             // TODO: Add logic to "run" the selected code
         }
     }
 
     override fun update(e: AnActionEvent) {
-        // Enable the action only when there's an editor and a selection
         val editor = e.getData(CommonDataKeys.EDITOR)
         e.presentation.isEnabled = editor != null && editor.selectionModel.hasSelection()
     }

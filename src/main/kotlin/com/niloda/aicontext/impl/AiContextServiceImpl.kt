@@ -16,7 +16,6 @@ import com.niloda.aicontext.model.IFileEditorManager
 import com.niloda.aicontext.model.IProject
 import java.util.concurrent.ConcurrentLinkedQueue
 
-
 object AiContextServiceImpl : AiContextService {
 
     override val queue = ConcurrentLinkedQueue<AiContextService.QueueItem>()
@@ -42,7 +41,6 @@ object AiContextServiceImpl : AiContextService {
         override val documentText: String? = editor.document.text
         override val selectedText: String? = editor.selectionModel.selectedText
     }
-
 
     class IntelliJFileEditorManagerAdapter(
         private val manager: FileEditorManager,

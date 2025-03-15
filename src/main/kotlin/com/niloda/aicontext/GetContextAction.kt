@@ -1,4 +1,3 @@
-// File: src/main/kotlin/com/niloda/aicontext/GetContextAction.kt
 package com.niloda.aicontext
 
 import com.intellij.openapi.actionSystem.AnAction

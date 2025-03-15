@@ -2,9 +2,9 @@ package com.niloda.aicontext
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import com.niloda.aicontext.model.AiContextService
 import com.niloda.aicontext.impl.AiContextServiceImpl
 import com.niloda.aicontext.impl.adapt
+import com.niloda.aicontext.model.AiContextService
 import com.niloda.aicontext.model.IFile
 import com.niloda.aicontext.model.IProject
 
@@ -13,9 +13,9 @@ object AiContextQueueManager {
 
     fun queueFile(file: PsiFile) {
         aiService.queueFile(file.adapt())
-        val queuedItem = aiService.queue.last() // Get the newly added item
+        val queuedItem = aiService.queue.last()
         AiContextToolWindow.addToQueue(queuedItem, file.project.adapt())
-        AiContextToolWindow.updateQueue(file.project.adapt()) // Ensure this is called
+        AiContextToolWindow.updateQueue(file.project.adapt())
     }
 
     fun processFile(item: AiContextService.QueueItem, project: IProject) {

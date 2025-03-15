@@ -9,12 +9,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.SECONDS
 
 class AiSender {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(1800, SECONDS)
-        .readTimeout(1800, SECONDS)
+        .connectTimeout(1800, TimeUnit.SECONDS)
+        .readTimeout(1800, TimeUnit.SECONDS)
         .build()
 
     fun sendToAi(prompt: String, project: IProject): String? {

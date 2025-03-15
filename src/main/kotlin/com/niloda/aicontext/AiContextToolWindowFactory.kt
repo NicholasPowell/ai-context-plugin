@@ -57,7 +57,6 @@ class AiContextToolWindowFactory : ToolWindowFactory {
                 }
             })
 
-
             setDefaultRenderer(Any::class.java, object : DefaultTableCellRenderer() {
                 override fun getTableCellRendererComponent(
                     table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
