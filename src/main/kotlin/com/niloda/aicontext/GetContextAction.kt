@@ -14,6 +14,7 @@ import com.niloda.aicontext.impl.AiContextServiceImpl.IntelliJFileAdapter
 import com.niloda.aicontext.impl.AiContextServiceImpl.IntelliJProjectAdapter
 import com.niloda.aicontext.impl.adapt
 import com.niloda.aicontext.model.AiContextService
+import com.niloda.aicontext.model.QueueItem
 
 class GetContextAction : AnAction() {
     private val aiService: AiContextService = AiContextServiceImpl
@@ -40,7 +41,7 @@ class GetContextAction : AnAction() {
 
                 com.intellij.util.ui.UIUtil.invokeLaterIfNeeded {
                     if (response != null && psiFile != null) {
-                        val item = AiContextService.QueueItem(psiFile, prompt = prompt, status = AiContextService.QueueItem.Status.DONE)
+                        val item = QueueItem(psiFile, prompt = prompt, status = QueueItem.Status.DONE)
                         aiService.queueFile(psiFile) // Ensure it’s in the queue
                         AiContextToolWindow.setResult(item, project.adapt(), response)
                     } else if (response == null) {

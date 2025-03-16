@@ -10,6 +10,7 @@ import com.niloda.aicontext.AiContextQueueManager.aiService
 import com.niloda.aicontext.impl.adapt
 import com.niloda.aicontext.model.AiContextService
 import com.niloda.aicontext.model.IProject
+import com.niloda.aicontext.model.QueueItem
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.MouseAdapter
@@ -47,11 +48,11 @@ class AiContextToolWindowFactory : ToolWindowFactory {
                     val item = aiService.queue.elementAtOrNull(row / 2)
                     if (item != null) {
                         when (item.status) {
-                            AiContextService.QueueItem.Status.PENDING -> {
+                            QueueItem.Status.PENDING -> {
                                 println("Run clicked for ${item.file.name}")
                                 AiContextQueueManager.processFile(item, project.adapt())
                             }
-                            AiContextService.QueueItem.Status.RUNNING -> {
+                            QueueItem.Status.RUNNING -> {
                                 println("Cancel clicked for ${item.file.name}")
                                 AiContextQueueManager.terminate(item.file)
                                 queueModel.setValueAt("Run", row, 2)
@@ -89,11 +90,11 @@ class AiContextToolWindowFactory : ToolWindowFactory {
                         }
                         isFileRow && column == 2 -> { // Action column in file row
                             val button = when (item.status) {
-                                AiContextService.QueueItem.Status.PENDING -> JButton("Run")
-                                AiContextService.QueueItem.Status.RUNNING -> JButton("Cancel")
+                                QueueItem.Status.PENDING -> JButton("Run")
+                                QueueItem.Status.RUNNING -> JButton("Cancel")
                                 else -> JButton("Run").apply { isEnabled = false }
                             }
-                            button.isEnabled = item.status == AiContextService.QueueItem.Status.PENDING || item.status == AiContextService.QueueItem.Status.RUNNING
+                            button.isEnabled = item.status == QueueItem.Status.PENDING || item.status == QueueItem.Status.RUNNING
                             button
                         }
                         else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
@@ -153,7 +154,7 @@ object AiContextToolWindow {
         project = proj
     }
 
-    fun addToQueue(item: AiContextService.QueueItem, project: IProject) {
+    fun addToQueue(item: QueueItem, project: IProject) {
         val existingRow = (0 until queueModel.rowCount step 2).find { row ->
             queueModel.getValueAt(row, 0) == item.getDisplayPath(project)
         }
@@ -173,8 +174,8 @@ object AiContextToolWindow {
         aiService.queue.forEach { item ->
             queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt,
                 when (item.status) {
-                    AiContextService.QueueItem.Status.PENDING -> "Run"
-                    AiContextService.QueueItem.Status.RUNNING -> "Cancel"
+                    QueueItem.Status.PENDING -> "Run"
+                    QueueItem.Status.RUNNING -> "Cancel"
                     else -> "Run"
                 },
                 item.status.toString(), item.getElapsedTime()))
@@ -184,7 +185,7 @@ object AiContextToolWindow {
         println("Updated queue UI, rows: ${queueModel.rowCount}")
     }
 
-    fun setResult(item: AiContextService.QueueItem, project: IProject, result: String?) {
+    fun setResult(item: QueueItem, project: IProject, result: String?) {
         item.result = "Result: ${result ?: "Error: Failed to process file"}" // Store result in item
         val queueIndex = aiService.queue.indexOf(item)
         val rowIndex = queueIndex * 2

@@ -6,6 +6,7 @@ import com.niloda.aicontext.impl.adapt
 import com.niloda.aicontext.model.AiContextService
 import com.niloda.aicontext.model.IFile
 import com.niloda.aicontext.model.IProject
+import com.niloda.aicontext.model.QueueItem
 
 object AiContextQueueManager {
     val aiService: AiContextServiceImpl = AiContextServiceImpl
@@ -17,7 +18,7 @@ object AiContextQueueManager {
         AiContextToolWindow.updateQueue(file.project.adapt())
     }
 
-    fun processFile(item: AiContextService.QueueItem, project: IProject) {
+    fun processFile(item: QueueItem, project: IProject) {
         aiService.processFile(item, project)
         AiContextToolWindow.updateQueue(project) // Update immediately to reflect running status
     }

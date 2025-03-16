@@ -17,7 +17,7 @@ import com.niloda.aicontext.model.IProject
 import java.util.concurrent.ConcurrentLinkedQueue
 import com.niloda.aicontext.AiContextToolWindow
 import com.intellij.util.ui.UIUtil
-import com.niloda.aicontext.model.AiContextService.QueueItem
+import com.niloda.aicontext.model.QueueItem
 
 object AiContextServiceImpl : AiContextService {
 
