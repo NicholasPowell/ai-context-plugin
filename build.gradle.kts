@@ -17,16 +17,22 @@ repositories {
 }
 
 sources {
-    val model by create
+    val model by create {
+        implementation dependsOn "org.jetbrains.kotlin:kotlin-stdlib"
+        addToJar()
+    }
     val main by getting {
         implementation dependsOn model
     }
 }
 
+
+
+
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // For Ollama API calls
-    implementation("org.json:json:20230227") // Add this for JSONObject
+    implementation("org.json:json:20231013") // Add this for JSONObject
 }
 
 intellij {

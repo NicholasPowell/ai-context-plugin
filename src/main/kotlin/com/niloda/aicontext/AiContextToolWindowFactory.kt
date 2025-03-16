@@ -11,17 +11,10 @@ import com.niloda.aicontext.impl.adapt
 import com.niloda.aicontext.model.AiContextService
 import com.niloda.aicontext.model.IProject
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.Timer
-import java.util.TimerTask
-import javax.swing.DefaultCellEditor
-import javax.swing.JButton
-import javax.swing.JPanel
-import javax.swing.JTable
-import javax.swing.JTextArea
-import javax.swing.JTextField
-import javax.swing.SwingUtilities
+import javax.swing.*
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 
@@ -31,23 +24,28 @@ class AiContextToolWindowFactory : ToolWindowFactory {
         val panel = JPanel(BorderLayout())
 
         val queueModel = object : DefaultTableModel(arrayOf("File", "Prompt", "Action", "Status", "Time"), 0) {
-            override fun isCellEditable(row: Int, column: Int): Boolean = column == 1
+            override fun isCellEditable(row: Int, column: Int): Boolean {
+                val isFileRow = row % 2 == 0
+                return isFileRow && column == 1 // Only "Prompt" in file rows is editable
+            }
         }
         val queueTable = JBTable(queueModel)
         queueTable.apply {
             autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
             columnModel.getColumn(0).preferredWidth = 300
-            columnModel.getColumn(1).preferredWidth = 200
+            columnModel.getColumn(1).preferredWidth = 400
             columnModel.getColumn(2).maxWidth = 80
             columnModel.getColumn(3).maxWidth = 100
             columnModel.getColumn(4).maxWidth = 80
+            rowHeight = 25 // Default height for file rows
 
             addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
                     val row = queueTable.rowAtPoint(e.point)
                     val col = queueTable.columnAtPoint(e.point)
-                    val item = aiService.queue.elementAtOrNull(row)
-                    if (item != null && col == 2) {
+                    if (row % 2 != 0 || col != 2) return // Only handle "Action" column in file rows
+                    val item = aiService.queue.elementAtOrNull(row / 2)
+                    if (item != null) {
                         when (item.status) {
                             AiContextService.QueueItem.Status.PENDING -> {
                                 println("Run clicked for ${item.file.name}")
@@ -71,10 +69,25 @@ class AiContextToolWindowFactory : ToolWindowFactory {
             setDefaultRenderer(Any::class.java, object : DefaultTableCellRenderer() {
                 override fun getTableCellRendererComponent(
                     table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
-                ): java.awt.Component {
-                    val item = aiService.queue.elementAtOrNull(row) ?: return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
-                    return when (column) {
-                        2 -> {
+                ): Component {
+                    val isFileRow = row % 2 == 0
+                    val item = aiService.queue.elementAtOrNull(row / 2) ?: return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+
+                    return when {
+                        !isFileRow && column == 0 -> { // Results row
+                            val textArea = JTextArea(value?.toString() ?: "").apply {
+                                isEditable = false
+                                lineWrap = true
+                                wrapStyleWord = true
+                            }
+                            val scrollPane = JBScrollPane(textArea).apply {
+                                preferredSize = java.awt.Dimension(table.width, 100)
+                                minimumSize = java.awt.Dimension(table.width, 50)
+                            }
+                            table.setRowHeight(row, 100)
+                            scrollPane
+                        }
+                        isFileRow && column == 2 -> { // Action column in file row
                             val button = when (item.status) {
                                 AiContextService.QueueItem.Status.PENDING -> JButton("Run")
                                 AiContextService.QueueItem.Status.RUNNING -> JButton("Cancel")
@@ -89,10 +102,10 @@ class AiContextToolWindowFactory : ToolWindowFactory {
             })
 
             setDefaultEditor(Any::class.java, object : DefaultCellEditor(JTextField()) {
-                override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): java.awt.Component {
-                    val item = aiService.queue.elementAtOrNull(row) ?: return super.getTableCellEditorComponent(table, value, isSelected, row, column)
-                    return when (column) {
-                        1 -> {
+                override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): Component {
+                    val item = aiService.queue.elementAtOrNull(row / 2) ?: return super.getTableCellEditorComponent(table, value, isSelected, row, column)
+                    return when {
+                        column == 1 && row % 2 == 0 -> { // Prompt in file row
                             val textField = JTextField(item.prompt)
                             textField.addActionListener {
                                 item.prompt = textField.text
@@ -107,8 +120,8 @@ class AiContextToolWindowFactory : ToolWindowFactory {
                     val success = super.stopCellEditing()
                     if (success) {
                         val row = editingRow
-                        if (row >= 0 && editingColumn == 1) {
-                            val item = aiService.queue.elementAtOrNull(row)
+                        if (row >= 0 && row % 2 == 0 && editingColumn == 1) {
+                            val item = aiService.queue.elementAtOrNull(row / 2)
                             item?.prompt = (getCellEditorValue() as String)
                             queueModel.setValueAt(item?.prompt, row, 1)
                             queueTable.repaint()
@@ -121,54 +134,38 @@ class AiContextToolWindowFactory : ToolWindowFactory {
         val queueScrollPane = JBScrollPane(queueTable)
         panel.add(queueScrollPane, BorderLayout.CENTER)
 
-        val outputArea = JTextArea("AI output will appear here...\n").apply {
-            isEditable = false
-            lineWrap = true
-            wrapStyleWord = true
-        }
-        val outputScrollPane = JBScrollPane(outputArea)
-        panel.add(outputScrollPane, BorderLayout.SOUTH)
-
         val content = ContentFactory.getInstance().createContent(panel, "", false)
         toolWindow.contentManager.addContent(content)
 
-        AiContextToolWindow.init(queueModel, queueTable, outputArea, project)
-
-        val timer = Timer(true)
-        timer.scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                SwingUtilities.invokeLater {
-                    AiContextToolWindow.updateQueue(project.adapt())
-                }
-            }
-        }, 0, 1000)
+        AiContextToolWindow.init(queueModel, queueTable, project)
+        AiContextToolWindow.updateQueue(project.adapt()) // Initial update
     }
 }
 
 object AiContextToolWindow {
     private lateinit var queueModel: DefaultTableModel
     private lateinit var queueTable: JBTable
-    private lateinit var outputArea: JTextArea
     private lateinit var project: Project
 
-    fun init(model: DefaultTableModel, table: JBTable, output: JTextArea, proj: Project) {
+    fun init(model: DefaultTableModel, table: JBTable, proj: Project) {
         queueModel = model
         queueTable = table
-        outputArea = output
         project = proj
     }
 
     fun addToQueue(item: AiContextService.QueueItem, project: IProject) {
-        // Check if an item for the same file already exists and replace it
-        val existingRow = (0 until queueModel.rowCount).find { row ->
+        val existingRow = (0 until queueModel.rowCount step 2).find { row ->
             queueModel.getValueAt(row, 0) == item.getDisplayPath(project)
         }
         if (existingRow != null) {
             println("Replacing UI row for ${item.file.name} at row $existingRow")
-            queueModel.removeRow(existingRow)
+            queueModel.removeRow(existingRow + 1) // Remove results row
+            queueModel.removeRow(existingRow) // Remove file row
         }
         queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, "Run", item.status.toString(), item.getElapsedTime()))
-        println("Added to queue UI: ${item.file.name}")
+        queueModel.addRow(arrayOf(item.result ?: "", "", "", "", "")) // Use stored result
+        println("Added to queue UI: ${item.file.name}, total rows: ${queueModel.rowCount}")
+        queueTable.repaint()
     }
 
     fun updateQueue(project: IProject) {
@@ -181,17 +178,27 @@ object AiContextToolWindow {
                     else -> "Run"
                 },
                 item.status.toString(), item.getElapsedTime()))
+            queueModel.addRow(arrayOf(item.result ?: "", "", "", "", ""))
         }
-        queueTable.repaint()
+        queueModel.fireTableDataChanged() // Force full refresh
         println("Updated queue UI, rows: ${queueModel.rowCount}")
     }
 
-    fun appendOutput(text: String) {
-        outputArea.append("$text\n")
-        outputArea.caretPosition = outputArea.document.length
-    }
-
-    fun clearOutput() {
-        outputArea.text = ""
+    fun setResult(item: AiContextService.QueueItem, project: IProject, result: String?) {
+        item.result = "Result: ${result ?: "Error: Failed to process file"}" // Store result in item
+        val queueIndex = aiService.queue.indexOf(item)
+        val rowIndex = queueIndex * 2
+        println("Setting result for ${item.file.name}, queue index: $queueIndex, row: ${rowIndex + 1}, result: ${result?.take(50) ?: "null"}")
+        if (rowIndex >= 0 && rowIndex + 1 < queueModel.rowCount) {
+            queueModel.setValueAt(item.result, rowIndex + 1, 0)
+            for (col in 1 until queueModel.columnCount) {
+                queueModel.setValueAt("", rowIndex + 1, col)
+            }
+            queueModel.fireTableDataChanged() // Ensure table updates
+            println("Result set in table at row ${rowIndex + 1}, total rows: ${queueModel.rowCount}")
+        } else {
+            println("Failed to set result: rowIndex $rowIndex out of bounds, queue size: ${aiService.queue.size}, table rows: ${queueModel.rowCount}")
+            AiContextToolWindow.updateQueue(project) // Force a full refresh as fallback
+        }
     }
 }

@@ -34,16 +34,17 @@ class GetContextAction : AnAction() {
                 val statusBar = WindowManager.getInstance().getStatusBar(project)
                 statusBar?.setInfo("Processing AI request...")
 
-                AiContextToolWindow.appendOutput("Sending request with ${context.length} chars...\n")
                 val prompt = "Explain this code:\n" + context
                 val response = aiService.sendToAi(prompt, project.adapt())
+                println("GetContextAction response: ${response?.take(50) ?: "null"}")
 
                 com.intellij.util.ui.UIUtil.invokeLaterIfNeeded {
-                    if (response != null) {
-                        AiContextToolWindow.clearOutput()
-                        AiContextToolWindow.appendOutput("Prompt:\n$prompt\n\nResponse:\n$response")
-                    } else {
-                        AiContextToolWindow.appendOutput("Error: Failed to get response from Ollama")
+                    if (response != null && psiFile != null) {
+                        val item = AiContextService.QueueItem(psiFile, prompt = prompt, status = AiContextService.QueueItem.Status.DONE)
+                        aiService.queueFile(psiFile) // Ensure it’s in the queue
+                        AiContextToolWindow.setResult(item, project.adapt(), response)
+                    } else if (response == null) {
+                        Messages.showErrorDialog(project, "Failed to get response from Ollama", "AI Context")
                     }
                     statusBar?.setInfo("AI request completed")
                 }

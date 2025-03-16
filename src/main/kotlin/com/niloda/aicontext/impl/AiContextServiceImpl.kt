@@ -87,12 +87,14 @@ object AiContextServiceImpl : AiContextService {
         val item = QueueItem(file)
         queue.add(item)
         println("Queued file: ${file.name}, Queue size: ${queue.size}")
+        AiContextToolWindow.addToQueue(item, (file as? IntelliJFileAdapter)?.psiFile?.project?.adapt() ?: return)
     }
 
     override fun processFile(item: QueueItem, project: IProject) {
         if (item.status != QueueItem.Status.PENDING) return
         item.status = QueueItem.Status.RUNNING
         item.startTime = System.currentTimeMillis()
+        println("Processing file: ${item.file.name}")
 
         val task = object :
             Task.Backgroundable((project as IntelliJProjectAdapter).project, "Processing ${item.file.name}", true) {
@@ -111,22 +113,13 @@ object AiContextServiceImpl : AiContextService {
                     return
                 }
 
-                item.status =
-                    if (response != null) QueueItem.Status.DONE else QueueItem.Status.ERROR
+                item.status = if (response != null) QueueItem.Status.DONE else QueueItem.Status.ERROR
                 item.startTime = null
                 activeTasks.remove(item.file)
+                println("Processing complete for ${item.file.name}, status: ${item.status}, response: ${response?.take(50) ?: "null"}")
 
                 UIUtil.invokeLaterIfNeeded {
-                    if (response != null) {
-                        AiContextToolWindow.appendOutput(
-                            "File: ${item.getDisplayPath(project)}\nPrompt:\n${item.prompt}\n\nResponse:\n$response\n\n"
-                        )
-                    } else {
-                        AiContextToolWindow.appendOutput(
-                            "File: ${item.getDisplayPath(project)}\nError: Failed to process file\n\n"
-                        )
-                    }
-                    AiContextToolWindow.updateQueue(project) // Ensure UI reflects completion
+                    AiContextToolWindow.setResult(item, project, response)
                 }
             }
 
@@ -135,8 +128,7 @@ object AiContextServiceImpl : AiContextService {
                 item.startTime = null
                 activeTasks.remove(item.file)
                 UIUtil.invokeLaterIfNeeded {
-                    AiContextToolWindow.appendOutput("File: ${item.getDisplayPath(project)}\nCancelled\n\n")
-                    AiContextToolWindow.updateQueue(project) // Immediate UI update
+                    AiContextToolWindow.updateQueue(project)
                 }
             }
 
@@ -154,14 +146,13 @@ object AiContextServiceImpl : AiContextService {
     override fun terminate(file: IFile) {
         val (task, indicator) = activeTasks[file] ?: return
         println("Terminating task for ${file.name}")
-        indicator.cancel() // Mark the indicator as canceled
-        activeTasks.remove(file) // Remove immediately to prevent re-processing
+        indicator.cancel()
+        activeTasks.remove(file)
         val item = queue.find { it.file == file }
         if (item != null && item.status == QueueItem.Status.RUNNING) {
             item.status = QueueItem.Status.CANCELLED
             item.startTime = null
             UIUtil.invokeLaterIfNeeded {
-                AiContextToolWindow.appendOutput("File: ${item.getDisplayPath((task.project as Project).adapt())}\nCancelled\n\n")
                 AiContextToolWindow.updateQueue((task.project as Project).adapt())
             }
         }

@@ -7,7 +7,8 @@ interface AiContextService {
         val file: IFile,
         var status: Status = Status.PENDING,
         var startTime: Long? = null,
-        var prompt: String = ""
+        var prompt: String = "",
+        var result: String? = null // New field to store the result
     ) {
         enum class Status { PENDING, RUNNING, DONE, ERROR, CANCELLED }
 

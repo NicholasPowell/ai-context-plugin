@@ -1,6 +1,5 @@
 package com.niloda.aicontext
 
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.niloda.aicontext.impl.AiContextServiceImpl
 import com.niloda.aicontext.impl.adapt
@@ -9,7 +8,7 @@ import com.niloda.aicontext.model.IFile
 import com.niloda.aicontext.model.IProject
 
 object AiContextQueueManager {
-    val aiService: AiContextService = AiContextServiceImpl
+    val aiService: AiContextServiceImpl = AiContextServiceImpl
 
     fun queueFile(file: PsiFile) {
         aiService.queueFile(file.adapt())
@@ -20,8 +19,7 @@ object AiContextQueueManager {
 
     fun processFile(item: AiContextService.QueueItem, project: IProject) {
         aiService.processFile(item, project)
-        AiContextToolWindow.appendOutput("File: ${item.getDisplayPath(project)}\nPrompt:\n${item.prompt}\n\nResponse:\nProcessing...\n\n")
-        AiContextToolWindow.updateQueue(project)
+        AiContextToolWindow.updateQueue(project) // Update immediately to reflect running status
     }
 
     fun terminate(file: IFile) {
