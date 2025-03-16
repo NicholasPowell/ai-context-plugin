@@ -5,7 +5,8 @@ data class QueueItem(
     var status: Status = Status.PENDING,
     var startTime: Long? = null,
     var prompt: String = "",
-    var result: String? = null // New field to store the result
+    var result: String? = null,
+    var outputDestination: String = "" // New field for output destination
 ) {
     enum class Status { PENDING, RUNNING, DONE, ERROR, CANCELLED }
 
