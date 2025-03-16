@@ -1,27 +1,27 @@
 <idea-plugin>
     <id>com.niloda.aicontext</id>
-    <name>AI-Context Plugin</name>
+    <name>AI-Context</name>
     <vendor>Niloda</vendor>
     <description>
-        A plugin to integrate AI-driven code explanation and file processing into IntelliJ IDEA using a local Ollama instance.
+        A plugin to integrate AI-driven code explanation and file processing into IntelliJ IDEA using a local Ollama
+        instance.
     </description>
     <version>1.0</version>
-    <idea-version since-build="223" /> <!-- Adjust based on your target IntelliJ version -->
+    <idea-version since-build="223"/> <!-- Adjust based on your target IntelliJ version -->
 
     <!-- Actions -->
     <actions>
-        <action id="com.niloda.aicontext.RunAction" class="com.niloda.aicontext.RunAction" text="Run This" description="Run selected code">
+        <action id="com.niloda.aicontext.EnqueueProjectItemAction"
+                class="com.niloda.aicontext.EnqueueProjectItemAction"
+                text="Enqueue for AI Processing"
+                description="Enqueue a file or directory for AI processing">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+        <action id="com.niloda.aicontext.QueueFileAction"
+                class="com.niloda.aicontext.QueueFileAction"
+                text="Enqueue for AI Processing"
+                description="Enqueue this file for AI processing">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
-        <action id="com.niloda.aicontext.GetContextAction" class="com.niloda.aicontext.GetContextAction" text="Get Context" description="Get AI context for selected code">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-        </action>
-        <action id="com.niloda.aicontext.QueueFileAction" class="com.niloda.aicontext.QueueFileAction" text="Queue File" description="Queue file for AI processing">
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-        </action>
-        <action id="com.niloda.aicontext.EnqueueProjectItemAction" class="com.niloda.aicontext.EnqueueProjectItemAction" text="Enqueue for AI Processing" description="Enqueue a file or directory for AI processing">
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
     </actions>
 

@@ -6,7 +6,7 @@ interface AiContextService {
 
     val queue: ConcurrentLinkedQueue<QueueItem>
 
-    fun getContext(project: IProject, editorText: String?, file: IFile?): String
+    fun processPromptForFile(project: IProject, file: IFile?): String
     fun sendToAi(prompt: String, project: IProject): String?
     fun queueFile(file: IFile)
     fun processFile(item: QueueItem, project: IProject)

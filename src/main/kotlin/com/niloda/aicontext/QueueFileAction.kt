@@ -8,16 +8,25 @@ import com.intellij.openapi.ui.Messages
 class QueueFileAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: run {
+        val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: e.getData(CommonDataKeys.EDITOR)?.let { editor ->
+            val virtualFile = editor.virtualFile ?: return@let null
+            com.intellij.psi.PsiManager.getInstance(project).findFile(virtualFile)
+        }
+
+        if (psiFile == null) {
             Messages.showErrorDialog(project, "No file selected to queue!", "AI Context")
             return
         }
         AiContextQueueManager.queueFile(psiFile)
+        Messages.showInfoMessage(project, "Enqueued file: ${psiFile.name}", "AI Context")
     }
 
     override fun update(e: AnActionEvent) {
         val project = e.project
         val psiFile = e.getData(CommonDataKeys.PSI_FILE)
-        e.presentation.isEnabled = project != null && psiFile != null
+        val editor = e.getData(CommonDataKeys.EDITOR)
+        // Enable if there's a project and either a PSI file (project view) or an editor with a file
+        e.presentation.isEnabled = project != null && (psiFile != null || editor?.virtualFile != null)
+        e.presentation.text = "Enqueue for AI Processing"
     }
 }

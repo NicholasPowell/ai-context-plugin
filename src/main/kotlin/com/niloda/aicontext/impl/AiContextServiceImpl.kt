@@ -56,22 +56,8 @@ object AiContextServiceImpl : AiContextService {
         }
     }
 
-    override fun getContext(project: IProject, editorText: String?, file: IFile?): String {
-        return when {
-            editorText?.isNotBlank() == true -> editorText
-            file != null -> file.text ?: ""
-            else -> {
-                val fileEditorManager = project.getFileEditorManager()
-                val openFiles = fileEditorManager.openFiles
-                val textContents = openFiles.mapNotNull { file ->
-                    fileEditorManager.getEditors(file).mapNotNull { editor ->
-                        editor.documentText
-                    }.firstOrNull()
-                }
-                textContents.joinToString("\n\n---\n\n")
-            }
-        }
-    }
+    override fun processPromptForFile(project: IProject, file: IFile?): String =
+        file?.text ?: ""
 
     override fun sendToAi(prompt: String, project: IProject): String? =
         aiSender.sendToAi(prompt, project)
