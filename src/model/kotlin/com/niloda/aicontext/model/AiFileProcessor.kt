@@ -2,13 +2,12 @@ package com.niloda.aicontext.model
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
-interface AiContextService {
+interface AiFileProcessor {
 
     val queue: ConcurrentLinkedQueue<QueueItem>
 
-    fun processPromptForFile(project: IProject, file: IFile?): String
     fun sendToAi(prompt: String, project: IProject): String?
-    fun queueFile(file: IFile)
+    fun enqueueFile(file: IFile)
     fun processFile(item: QueueItem, project: IProject)
     fun terminate(file: IFile)
     fun getQueueStatus(): List<QueueItem>

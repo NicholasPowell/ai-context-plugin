@@ -1,7 +1,8 @@
-package com.niloda.aicontext.impl
+package com.niloda.aicontext.ollama
 
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.ui.UIUtil
+import com.niloda.aicontext.intellij.adapt.IntelliJProjectAdapter
 import com.niloda.aicontext.model.IProject
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -16,8 +17,10 @@ class AiSender {
         .readTimeout(1800, TimeUnit.SECONDS)
         .build()
 
-    fun sendToAi(prompt: String, project: IProject): String? {
-        return try {
+    fun sendToAi(prompt: String, project: IProject): String? =
+        try {
+
+            println("Sending to AI $prompt")
             val json = JSONObject()
                 .put("model", "llama3")
                 .put("prompt", prompt)
@@ -36,12 +39,11 @@ class AiSender {
         } catch (e: Exception) {
             UIUtil.invokeLaterIfNeeded {
                 Messages.showErrorDialog(
-                    (project as AiContextServiceImpl.IntelliJProjectAdapter).project,
+                    (project as IntelliJProjectAdapter).project,
                     "Failed to contact Ollama: ${e.message}",
                     "AI Context Error"
                 )
             }
             null
         }
-    }
 }

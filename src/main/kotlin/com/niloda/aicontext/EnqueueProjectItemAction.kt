@@ -6,7 +6,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
-import com.niloda.aicontext.impl.adapt
+import com.niloda.aicontext.intellij.QueueManager
 
 class EnqueueProjectItemAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
@@ -18,7 +18,7 @@ class EnqueueProjectItemAction : AnAction() {
 
         when (psiElement) {
             is PsiFile -> {
-                AiContextQueueManager.queueFile(psiElement)
+                QueueManager.queueFile(psiElement)
                 Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name}", "AI Context")
             }
             is PsiDirectory -> {
@@ -28,7 +28,7 @@ class EnqueueProjectItemAction : AnAction() {
                     return
                 }
                 files.forEach { file ->
-                    AiContextQueueManager.queueFile(file)
+                    QueueManager.queueFile(file)
                 }
                 Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name}", "AI Context")
             }

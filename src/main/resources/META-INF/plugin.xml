@@ -28,11 +28,11 @@
     <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
 
-        <toolWindow id="AI Context" anchor="bottom" factoryClass="com.niloda.aicontext.AiContextToolWindowFactory"/>
+        <toolWindow id="AI Context" anchor="bottom" factoryClass="com.niloda.aicontext.intellij.AiProcessorWindowFactory"/>
         <applicationConfigurable
-                id="com.niloda.aicontext.AiContextSettings"
+                id="com.niloda.aicontext.intellij.Settings"
                 displayName="Ai-Context Settings"
-                instance="com.niloda.aicontext.AiContextSettings"
+                instance="com.niloda.aicontext.intellij.Settings"
         />
     </extensions>
 </idea-plugin>

@@ -1,9 +1,9 @@
-package com.niloda.aicontext
+package com.niloda.aicontext.intellij
 
 import com.intellij.openapi.options.Configurable
 import javax.swing.*
 
-class AiContextSettings : Configurable {
+class Settings : Configurable {
     private var promptField: JTextField? = null
 
     override fun createComponent(): JComponent {
@@ -28,6 +28,3 @@ class AiContextSettings : Configurable {
     override fun getDisplayName(): String = "Ai-Context Settings"
 }
 
-object AiContextState {
-    var promptTemplate: String = "Explain this code:\n"
-}

@@ -1,16 +1,13 @@
-package com.niloda.aicontext
+package com.niloda.aicontext.intellij
 
 import com.intellij.openapi.project.Project
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
-import com.niloda.aicontext.AiContextQueueManager.aiService
-import com.niloda.aicontext.impl.adapt
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 import java.io.File
 import javax.swing.table.DefaultTableModel
 
-object AiContextToolWindow {
+object AiProcessorToolWindow {
     private lateinit var queueModel: DefaultTableModel
     private lateinit var queueTable: JBTable
     private lateinit var project: Project
@@ -38,7 +35,7 @@ object AiContextToolWindow {
 
     fun updateQueue(project: IProject) {
         queueModel.rowCount = 0
-        aiService.queue.forEach { item ->
+        QueueManager.aiService.queue.forEach { item ->
             queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, item.outputDestination,
                 when (item.status) {
                     QueueItem.Status.PENDING -> "Run"
@@ -54,7 +51,7 @@ object AiContextToolWindow {
 
     fun setResult(item: QueueItem, project: IProject, result: String?) {
         item.result = "Result: ${result ?: "Error: Failed to process file"}" // Store result in item
-        val queueIndex = aiService.queue.indexOf(item)
+        val queueIndex = QueueManager.aiService.queue.indexOf(item)
         val rowIndex = queueIndex * 2
         println("Setting result for ${item.file.name}, queue index: $queueIndex, row: ${rowIndex + 1}, result: ${result?.take(50) ?: "null"}")
         if (rowIndex >= 0 && rowIndex + 1 < queueModel.rowCount) {
@@ -66,8 +63,8 @@ object AiContextToolWindow {
             queueModel.fireTableDataChanged() // Ensure table updates
             println("Result set in table at row ${rowIndex + 1}, total rows: ${queueModel.rowCount}")
         } else {
-            println("Failed to set result: rowIndex $rowIndex out of bounds, queue size: ${aiService.queue.size}, table rows: ${queueModel.rowCount}")
-            AiContextToolWindow.updateQueue(project) // Force a full refresh as fallback
+            println("Failed to set result: rowIndex $rowIndex out of bounds, queue size: ${QueueManager.aiService.queue.size}, table rows: ${queueModel.rowCount}")
+            updateQueue(project) // Force a full refresh as fallback
         }
     }
 
@@ -77,7 +74,7 @@ object AiContextToolWindow {
             return
         }
         try {
-            val outputFile = File(project.basePath +"/" + item.outputDestination)
+            val outputFile = File(project.basePath + "/" + item.outputDestination)
             outputFile.parentFile?.mkdirs() // Create directories if they don't exist
             outputFile.writeText(item.result!!)
             println("Saved result to ${item.outputDestination} for ${item.file.name}")
