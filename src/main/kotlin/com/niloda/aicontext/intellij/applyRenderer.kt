@@ -34,7 +34,9 @@ fun JBTable.applyRenderer() {
                         table.setRowHeight(row, 100)
                         scrollPane
                     }
-
+                    isFileRow && column == 1 -> { // Prompt column in file row
+                        super.getTableCellRendererComponent(table, item.prompt, isSelected, hasFocus, row, column)
+                    }
                     isFileRow && column == 3 -> { // Action column in file row
                         val button = when (item.status) {
                             QueueItem.Status.PENDING -> JButton("Run")
@@ -45,14 +47,12 @@ fun JBTable.applyRenderer() {
                             item.status == QueueItem.Status.PENDING || item.status == QueueItem.Status.RUNNING
                         button
                     }
-
                     !isFileRow && column == 3 -> { // Save button in results row
                         JButton("Save").apply {
                             isEnabled =
                                 item.result != null && item.status == QueueItem.Status.DONE && item.outputDestination.isNotBlank()
                         }
                     }
-
                     else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
                 }
             }
