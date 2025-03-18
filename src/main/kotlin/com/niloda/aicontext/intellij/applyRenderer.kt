@@ -21,7 +21,7 @@ fun JBTable.applyRenderer() {
                     ?: return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
 
                 return when {
-                    !isFileRow && column == 0 -> { // Results row
+                    !isFileRow && column == 0 -> {
                         val textArea = JTextArea(value?.toString() ?: "").apply {
                             isEditable = false
                             lineWrap = true
@@ -34,23 +34,21 @@ fun JBTable.applyRenderer() {
                         table.setRowHeight(row, 100)
                         scrollPane
                     }
-                    isFileRow && column == 1 -> { // Prompt column in file row
+                    isFileRow && column == 1 -> {
                         super.getTableCellRendererComponent(table, item.prompt, isSelected, hasFocus, row, column)
                     }
-                    isFileRow && column == 3 -> { // Action column in file row
+                    isFileRow && column == 3 -> {
                         val button = when (item.status) {
                             QueueItem.Status.PENDING -> JButton("Run")
                             QueueItem.Status.RUNNING -> JButton("Cancel")
                             else -> JButton("Run").apply { isEnabled = false }
                         }
-                        button.isEnabled =
-                            item.status == QueueItem.Status.PENDING || item.status == QueueItem.Status.RUNNING
+                        button.isEnabled = item.status == QueueItem.Status.PENDING || item.status == QueueItem.Status.RUNNING
                         button
                     }
-                    !isFileRow && column == 3 -> { // Save button in results row
+                    !isFileRow && column == 3 -> {
                         JButton("Save").apply {
-                            isEnabled =
-                                item.result != null && item.status == QueueItem.Status.DONE && item.outputDestination.isNotBlank()
+                            isEnabled = item.result != null && item.status == QueueItem.Status.DONE && item.outputDestination.isNotBlank()
                         }
                     }
                     else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
