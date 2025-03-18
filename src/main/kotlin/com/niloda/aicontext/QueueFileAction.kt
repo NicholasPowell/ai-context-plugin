@@ -4,7 +4,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ui.Messages
-import com.niloda.aicontext.intellij.QueueManager
+import com.niloda.aicontext.intellij.AiProcessorToolWindow
+import com.niloda.aicontext.intellij.IntelliJAiFileProcessor
+import com.niloda.aicontext.intellij.adapt
 
 class QueueFileAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
@@ -18,15 +20,23 @@ class QueueFileAction : AnAction() {
             Messages.showErrorDialog(project, "No file selected to queue!", "AI Context")
             return
         }
-        QueueManager.queueFile(psiFile)
-        Messages.showInfoMessage(project, "Enqueued file: ${psiFile.name}", "AI Context")
+        val groupName = Messages.showInputDialog(
+            project,
+            "Enter group name for this file:",
+            "Group Name",
+            Messages.getQuestionIcon(),
+            "Default",
+            null
+        ) ?: return // Cancelled dialog returns null
+        IntelliJAiFileProcessor.enqueueFileWithGroup(psiFile.adapt(), groupName)
+        Messages.showInfoMessage(project, "Enqueued file: ${psiFile.name} in group: $groupName", "AI Context")
+        AiProcessorToolWindow.updateQueue(project.adapt()) // Update UI after enqueuing
     }
 
     override fun update(e: AnActionEvent) {
         val project = e.project
         val psiFile = e.getData(CommonDataKeys.PSI_FILE)
         val editor = e.getData(CommonDataKeys.EDITOR)
-        // Enable if there's a project and either a PSI file (project view) or an editor with a file
         e.presentation.isEnabled = project != null && (psiFile != null || editor?.virtualFile != null)
         e.presentation.text = "Enqueue for AI Processing"
     }

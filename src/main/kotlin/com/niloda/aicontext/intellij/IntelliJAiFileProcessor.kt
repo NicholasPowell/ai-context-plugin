@@ -14,9 +14,7 @@ import com.niloda.aicontext.ollama.AiSender
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.mutableMapOf
 
-
 object IntelliJAiFileProcessor : AiFileProcessor {
-
     override val queue = ConcurrentLinkedQueue<QueueItem>()
     private val activeTasks = mutableMapOf<IFile, Pair<Task.Backgroundable, ProgressIndicator>>()
     private val aiSender: AiSender = AiSender()
@@ -24,9 +22,22 @@ object IntelliJAiFileProcessor : AiFileProcessor {
     override fun sendToAi(prompt: String, project: IProject): String? =
         aiSender.sendToAi(prompt, project)
 
-
     override fun enqueueFile(file: IFile) {
         EnqueueFile(file)
+    }
+
+    fun enqueueFileWithGroup(file: IFile, groupName: String) {
+        val existingItem = queue.find { it.file == file }
+        if (existingItem != null) {
+            queue.remove(existingItem)
+            if (existingItem.status == QueueItem.Status.RUNNING) {
+                terminate(file)
+            }
+        }
+        val item = QueueItem(file, groupName = groupName)
+        queue.add(item)
+        println("Queued file: ${file.name} in group: $groupName, Queue size: ${queue.size}")
+        AiProcessorToolWindow.addToQueue(item, (file as? IntelliJFileAdapter)?.psiFile?.project?.adapt() ?: return)
     }
 
     override fun processFile(item: QueueItem, project: IProject) {
@@ -39,8 +50,11 @@ object IntelliJAiFileProcessor : AiFileProcessor {
 
     override fun getQueueStatus(): List<QueueItem> = queue.toList()
 
+    fun moveItemToGroup(item: QueueItem, newGroupName: String) {
+        item.groupName = newGroupName
+        println("Moved ${item.file.name} to group: $newGroupName")
+    }
 }
+
 fun Project.adapt() = IntelliJProjectAdapter(this)
 fun PsiFile.adapt() = IntelliJFileAdapter(this)
-
-

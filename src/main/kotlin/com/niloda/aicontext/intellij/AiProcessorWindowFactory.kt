@@ -24,8 +24,12 @@ class AiProcessorWindowFactory : ToolWindowFactory {
             "Time"
         ), 0) {
             override fun isCellEditable(row: Int, column: Int): Boolean {
-                val isFileRow = row % 2 == 0
-                return isFileRow && (column == 1 || column == 2) // "Prompt" and "Output Destination" in file rows are editable
+                return !rowIsGroupHeader(row) && (column == 1 || column == 2)
+            }
+
+            private fun rowIsGroupHeader(row: Int): Boolean {
+                val value = getValueAt(row, 0)?.toString() ?: return false
+                return value.startsWith("Group: ")
             }
         }
         val queueTable = JBTable(queueModel)
@@ -33,6 +37,7 @@ class AiProcessorWindowFactory : ToolWindowFactory {
         queueTable.applyButtonClickListener(project, queueModel)
         queueTable.applyRenderer()
         queueTable.applyEditor(queueModel)
+        queueTable.applyDragAndDrop(project)
 
         val queueScrollPane = JBScrollPane(queueTable)
         panel.add(queueScrollPane, BorderLayout.CENTER)
@@ -41,7 +46,6 @@ class AiProcessorWindowFactory : ToolWindowFactory {
         toolWindow.contentManager.addContent(content)
 
         AiProcessorToolWindow.init(queueModel, queueTable, project)
-        AiProcessorToolWindow.updateQueue(project.adapt()) // Initial update
+        AiProcessorToolWindow.updateQueue(project.adapt())
     }
 }
-

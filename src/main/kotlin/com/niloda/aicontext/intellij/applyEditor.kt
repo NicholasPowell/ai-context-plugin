@@ -19,43 +19,42 @@ fun JBTable.applyEditor(queueModel: DefaultTableModel) {
                 row: Int,
                 column: Int
             ): Component {
-                val item = QueueManager.aiService.queue.elementAtOrNull(row / 2)
+                if (rowIsGroupHeader(row)) {
+                    return super.getTableCellEditorComponent(table, value, isSelected, row, column)
+                }
+                val item = QueueManager.aiService.queue.elementAtOrNull(row - groupedRowOffset(row))
                     ?: return super.getTableCellEditorComponent(table, value, isSelected, row, column)
-                return when {
-                    column == 1 && row % 2 == 0 -> { // Prompt in file row
+                return when (column) {
+                    1 -> { // Prompt column
                         val textField = JTextField(item.prompt)
                         textField.addActionListener {
                             item.prompt = textField.text
-                            println("Prompt updated via Enter: ${item.prompt}")
                             queueModel.setValueAt(item.prompt, row, column)
                             queueModel.fireTableCellUpdated(row, column)
                         }
                         textField.addFocusListener(object : FocusAdapter() {
                             override fun focusLost(e: FocusEvent?) {
                                 item.prompt = textField.text
-                                println("Prompt updated via focus loss: ${item.prompt}")
                                 queueModel.setValueAt(item.prompt, row, column)
                                 queueModel.fireTableCellUpdated(row, column)
-                                stopCellEditing() // Ensure editing stops cleanly
+                                stopCellEditing()
                             }
                         })
                         textField
                     }
-                    column == 2 && row % 2 == 0 -> { // Output Destination in file row
+                    2 -> { // Output Destination column
                         val textField = JTextField(item.outputDestination)
                         textField.addActionListener {
                             item.outputDestination = textField.text
-                            println("Output destination updated via Enter: ${item.outputDestination}")
                             queueModel.setValueAt(item.outputDestination, row, column)
                             queueModel.fireTableCellUpdated(row, column)
                         }
                         textField.addFocusListener(object : FocusAdapter() {
                             override fun focusLost(e: FocusEvent?) {
                                 item.outputDestination = textField.text
-                                println("Output destination updated via focus loss: ${item.outputDestination}")
                                 queueModel.setValueAt(item.outputDestination, row, column)
                                 queueModel.fireTableCellUpdated(row, column)
-                                stopCellEditing() // Ensure editing stops cleanly
+                                stopCellEditing()
                             }
                         })
                         textField
@@ -66,31 +65,35 @@ fun JBTable.applyEditor(queueModel: DefaultTableModel) {
 
             override fun stopCellEditing(): Boolean {
                 val success = super.stopCellEditing()
-                if (success) {
-                    val row = editingRow
-                    if (row >= 0 && row % 2 == 0) {
-                        val item = QueueManager.aiService.queue.elementAtOrNull(row / 2)
-                        if (item != null) {
-                            val newValue = getCellEditorValue() as String
-                            when (editingColumn) {
-                                1 -> {
-                                    item.prompt = newValue
-                                    println("Prompt set in stopCellEditing: $newValue at row $row")
-                                }
-                                2 -> {
-                                    item.outputDestination = newValue
-                                    println("Output destination set in stopCellEditing: $newValue at row $row")
-                                }
-                            }
-                            queueModel.setValueAt(newValue, row, editingColumn)
-                            println("Model updated at ($row, $editingColumn) with: $newValue")
-                            queueModel.fireTableCellUpdated(row, editingColumn)
-                            println("Fired table cell update for ($row, $editingColumn)")
+                if (success && !rowIsGroupHeader(editingRow)) {
+                    val item = QueueManager.aiService.queue.elementAtOrNull(editingRow - groupedRowOffset(editingRow))
+                    if (item != null) {
+                        val newValue = getCellEditorValue() as String
+                        when (editingColumn) {
+                            1 -> item.prompt = newValue
+                            2 -> item.outputDestination = newValue
                         }
+                        queueModel.setValueAt(newValue, editingRow, editingColumn)
+                        queueModel.fireTableCellUpdated(editingRow, editingColumn)
                     }
                 }
                 return success
             }
         })
     }
+}
+
+private fun JBTable.rowIsGroupHeader(row: Int): Boolean {
+    val value = model.getValueAt(row, 0)?.toString() ?: return false
+    return value.startsWith("Group: ")
+}
+
+private fun JBTable.groupedRowOffset(row: Int): Int {
+    val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
+    var currentRow = 0
+    groupedItems.forEach { (_, items) ->
+        if (row in currentRow until (currentRow + 1 + items.size)) return currentRow
+        currentRow += 1 + items.size
+    }
+    return 0
 }

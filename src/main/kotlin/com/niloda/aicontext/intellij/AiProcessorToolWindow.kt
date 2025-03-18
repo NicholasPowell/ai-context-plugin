@@ -21,55 +21,37 @@ object AiProcessorToolWindow {
     }
 
     fun addToQueue(item: QueueItem, project: IProject) {
-        val existingRow = (0 until queueModel.rowCount step 2).find { row ->
-            queueModel.getValueAt(row, 0) == item.getDisplayPath(project)
-        }
-        if (existingRow != null) {
-            println("Replacing UI row for ${item.file.name} at row $existingRow")
-            queueModel.removeRow(existingRow + 1)
-            queueModel.removeRow(existingRow)
-        }
-        queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, item.outputDestination, "Run", item.status.toString(), item.getElapsedTime()))
-        queueModel.addRow(arrayOf(item.result ?: "", "", "", "Save", "", ""))
-        println("Added to queue UI: ${item.file.name}, total rows: ${queueModel.rowCount}")
-        queueTable.repaint()
+        updateQueue(project)
     }
 
     fun updateQueue(project: IProject) {
         queueModel.rowCount = 0
-        QueueManager.aiService.queue.forEach { item ->
-            queueModel.addRow(arrayOf(item.getDisplayPath(project), item.prompt, item.outputDestination,
-                when (item.status) {
-                    QueueItem.Status.PENDING -> "Run"
-                    QueueItem.Status.RUNNING -> "Cancel"
-                    else -> "Run"
-                },
-                item.status.toString(), item.getElapsedTime()))
-            queueModel.addRow(arrayOf(item.result ?: "", "", "", "Save", "", ""))
+        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
+        groupedItems.forEach { (groupName, items) ->
+            queueModel.addRow(arrayOf("Group: $groupName", "", "", "", "", ""))
+            items.forEach { item ->
+                queueModel.addRow(arrayOf(
+                    item.getDisplayPath(project),
+                    item.prompt,
+                    item.outputDestination,
+                    when (item.status) {
+                        QueueItem.Status.PENDING -> "Run"
+                        QueueItem.Status.RUNNING -> "Cancel"
+                        else -> "Save"
+                    },
+                    item.status.toString(),
+                    item.getElapsedTime()
+                ))
+            }
         }
         queueModel.fireTableDataChanged()
-        println("Updated queue UI, rows: ${queueModel.rowCount}")
-        checkTimerState(project) // Adjust timer based on current state
+        println("Updated queue UI with groups, rows: ${queueModel.rowCount}")
+        checkTimerState(project)
     }
 
     fun setResult(item: QueueItem, project: IProject, result: String?) {
-        item.result = "Result: ${result ?: "Error: Failed to process file"}"
-        val queueIndex = QueueManager.aiService.queue.indexOf(item)
-        val rowIndex = queueIndex * 2
-        println("Setting result for ${item.file.name}, queue index: $queueIndex, row: ${rowIndex + 1}, result: ${result?.take(50) ?: "null"}")
-        if (rowIndex >= 0 && rowIndex + 1 < queueModel.rowCount) {
-            queueModel.setValueAt(item.result, rowIndex + 1, 0)
-            queueModel.setValueAt("Save", rowIndex + 1, 3)
-            for (col in listOf(1, 2, 4, 5)) {
-                queueModel.setValueAt("", rowIndex + 1, col)
-            }
-            queueModel.fireTableDataChanged()
-            println("Result set in table at row ${rowIndex + 1}, total rows: ${queueModel.rowCount}")
-        } else {
-            println("Failed to set result: rowIndex $rowIndex out of bounds, queue size: ${QueueManager.aiService.queue.size}, table rows: ${queueModel.rowCount}")
-            updateQueue(project)
-        }
-        checkTimerState(project) // Stop timer if no tasks are running
+        item.result = result ?: "Error: Failed to process file"
+        updateQueue(project)
     }
 
     fun saveResult(item: QueueItem, project: IProject) {
@@ -88,13 +70,14 @@ object AiProcessorToolWindow {
     }
 
     fun startTimer(project: IProject) {
-        if (updateTimer?.isRunning == true) return // Timer already running
-        updateTimer = Timer(1000) { // Update every 1 second
+        if (updateTimer?.isRunning == true) return
+        updateTimer = Timer(1000) {
             var hasRunningTasks = false
             QueueManager.aiService.queue.forEachIndexed { index, item ->
                 if (item.status == QueueItem.Status.RUNNING) {
                     hasRunningTasks = true
-                    val row = index * 2
+                    val groupOffset = groupedRowOffset(item.groupName)
+                    val row = groupOffset + index + 1 // +1 for group header
                     queueModel.setValueAt(item.getElapsedTime(), row, 5)
                     queueModel.fireTableCellUpdated(row, 5)
                 }
@@ -109,6 +92,16 @@ object AiProcessorToolWindow {
             start()
             println("Timer started for updating elapsed time")
         }
+    }
+
+    private fun groupedRowOffset(groupName: String): Int {
+        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
+        var offset = 0
+        for ((name, items) in groupedItems) {
+            if (name == groupName) return offset
+            offset += 1 + items.size // 1 for header, 1 row per item
+        }
+        return offset
     }
 
     private fun checkTimerState(project: IProject) {

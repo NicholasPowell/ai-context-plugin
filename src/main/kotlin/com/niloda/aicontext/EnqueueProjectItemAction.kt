@@ -4,9 +4,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ui.Messages
+import com.niloda.aicontext.intellij.IntelliJAiFileProcessor
+import com.niloda.aicontext.intellij.QueueManager
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
-import com.niloda.aicontext.intellij.QueueManager
+import com.niloda.aicontext.intellij.AiProcessorToolWindow
+import com.niloda.aicontext.intellij.adapt
 
 class EnqueueProjectItemAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
@@ -16,10 +19,19 @@ class EnqueueProjectItemAction : AnAction() {
             return
         }
 
+        val groupName = Messages.showInputDialog(
+            project,
+            "Enter group name for this item(s):",
+            "Group Name",
+            Messages.getQuestionIcon(),
+            "Default",
+            null
+        ) ?: return // Cancelled dialog returns null
+
         when (psiElement) {
             is PsiFile -> {
-                QueueManager.queueFile(psiElement)
-                Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name}", "AI Context")
+                IntelliJAiFileProcessor.enqueueFileWithGroup(psiElement.adapt(), groupName)
+                Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name} in group: $groupName", "AI Context")
             }
             is PsiDirectory -> {
                 val files = psiElement.files.filter { it.isPhysical && !it.isDirectory }
@@ -28,14 +40,15 @@ class EnqueueProjectItemAction : AnAction() {
                     return
                 }
                 files.forEach { file ->
-                    QueueManager.queueFile(file)
+                    IntelliJAiFileProcessor.enqueueFileWithGroup(file.adapt(), groupName)
                 }
-                Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name}", "AI Context")
+                Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name} in group: $groupName", "AI Context")
             }
             else -> {
                 Messages.showErrorDialog(project, "Selected item is not a file or directory!", "AI Context")
             }
         }
+        AiProcessorToolWindow.updateQueue(project.adapt()) // Update UI after enqueuing
     }
 
     override fun update(e: AnActionEvent) {
