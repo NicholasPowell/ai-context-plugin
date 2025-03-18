@@ -61,7 +61,6 @@ The **AI-Context Plugin** is an IntelliJ IDEA plugin designed to integrate AI-dr
 - **Add CLI Client**: Develop a command-line interface to queue and process files without an IDE.
 - **Chooser of Different LLMs for Each Job**: Allow users to select different language models (e.g., beyond `llama3`) per task.
 - **Create groups for running processes that direct output files to a shared directory**: Allows jobs of prompts to direct their output to a single location
-- **Fix right click inside editor to enqueue file**: Broke after enqueue from project window
 
 ## Contributing
 Feel free to fork this repository, submit issues, or create pull requests to enhance the plugin. Planned improvements are a great starting point for contributions!
