@@ -1,23 +1,33 @@
 package com.niloda.aicontext.intellij
 
 import com.intellij.openapi.project.Project
-import com.intellij.ui.table.JBTable
+import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.treeStructure.Tree
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
+import java.awt.*
 import java.io.File
-import javax.swing.Timer
-import javax.swing.table.DefaultTableModel
+import javax.swing.*
+import javax.swing.tree.*
+import java.awt.event.MouseEvent
+import java.util.EventObject
 
 object AiProcessorToolWindow {
-    private lateinit var queueModel: DefaultTableModel
-    private lateinit var queueTable: JBTable
+    private lateinit var queueTree: Tree
+    private lateinit var treeModel: DefaultTreeModel
     private lateinit var project: Project
     private var updateTimer: Timer? = null
 
-    fun init(model: DefaultTableModel, table: JBTable, proj: Project) {
-        queueModel = model
-        queueTable = table
+    fun init(tree: Tree, proj: Project) {
+        queueTree = tree
         project = proj
+        treeModel = DefaultTreeModel(DefaultMutableTreeNode("Queue"))
+        queueTree.model = treeModel
+        queueTree.isRootVisible = false
+        queueTree.cellRenderer = QueueTreeCellRenderer(treeModel)
+        queueTree.cellEditor = QueueTreeCellEditor(treeModel)
+        queueTree.isEditable = true // Enable editing
+        queueTree.addMouseListener(QueueTreeMouseListener(project))
     }
 
     fun addToQueue(item: QueueItem, project: IProject) {
@@ -25,63 +35,42 @@ object AiProcessorToolWindow {
     }
 
     fun updateQueue(project: IProject) {
-        queueModel.rowCount = 0
+        val root = treeModel.root as DefaultMutableTreeNode
+        root.removeAllChildren()
         val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
         groupedItems.forEach { (groupName, items) ->
-            queueModel.addRow(arrayOf("Group: $groupName", "", "", "", "", ""))
+            val groupNode = DefaultMutableTreeNode("Group: $groupName")
             items.forEach { item ->
-                queueModel.addRow(arrayOf(
-                    item.getDisplayPath(project),
-                    item.prompt,
-                    item.outputDestination,
-                    when (item.status) {
-                        QueueItem.Status.PENDING -> "Run"
-                        QueueItem.Status.RUNNING -> "Cancel"
-                        else -> "Save"
-                    },
-                    item.status.toString(),
-                    item.getElapsedTime()
-                ))
+                groupNode.add(DefaultMutableTreeNode(item))
             }
+            root.add(groupNode)
         }
-        queueModel.fireTableDataChanged()
-        println("Updated queue UI with groups, rows: ${queueModel.rowCount}")
+        treeModel.reload()
+        queueTree.expandRow(0) // Expand root to show groups
+        println("Updated queue UI with groups, items: ${QueueManager.aiService.queue.size}")
         checkTimerState(project)
     }
 
     fun setResult(item: QueueItem, project: IProject, result: String?) {
         item.result = result ?: "Error: Failed to process file"
-        updateSpecificRow(item, project)  // New method instead of full update
+        updateSpecificItem(item, project)
         checkTimerState(project)
     }
 
-    private fun updateSpecificRow(item: QueueItem, project: IProject) {
-        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
-        var currentRow = 0
-
-        for ((groupName, items) in groupedItems) {
-            currentRow++ // Skip group header
-            val itemIndex = items.indexOf(item)
-            if (itemIndex != -1) {
-                val row = currentRow + itemIndex
-                queueModel.setValueAt(item.getDisplayPath(project), row, 0)
-                queueModel.setValueAt(item.prompt, row, 1)
-                queueModel.setValueAt(item.outputDestination, row, 2)
-                queueModel.setValueAt(
-                    when (item.status) {
-                        QueueItem.Status.PENDING -> "Run"
-                        QueueItem.Status.RUNNING -> "Cancel"
-                        else -> "Save"
-                    },
-                    row, 3
-                )
-                queueModel.setValueAt(item.status.toString(), row, 4)
-                queueModel.setValueAt(item.getElapsedTime(), row, 5)
-                queueModel.fireTableRowsUpdated(row, row)
-                queueTable.repaint()
-                return
+    private fun updateSpecificItem(item: QueueItem, project: IProject) {
+        val root = treeModel.root as DefaultMutableTreeNode
+        for (i in 0 until root.childCount) {
+            val groupNode = root.getChildAt(i) as DefaultMutableTreeNode
+            val groupName = groupNode.userObject.toString().removePrefix("Group: ")
+            if (groupName == item.groupName) {
+                for (j in 0 until groupNode.childCount) {
+                    val itemNode = groupNode.getChildAt(j) as DefaultMutableTreeNode
+                    if (itemNode.userObject == item) {
+                        treeModel.nodeChanged(itemNode)
+                        return
+                    }
+                }
             }
-            currentRow += items.size
         }
     }
 
@@ -104,13 +93,10 @@ object AiProcessorToolWindow {
         if (updateTimer?.isRunning == true) return
         updateTimer = Timer(1000) {
             var hasRunningTasks = false
-            QueueManager.aiService.queue.forEachIndexed { index, item ->
+            QueueManager.aiService.queue.forEach { item ->
                 if (item.status == QueueItem.Status.RUNNING) {
                     hasRunningTasks = true
-                    val groupOffset = groupedRowOffset(item.groupName)
-                    val row = groupOffset + index + 1 // +1 for group header
-                    queueModel.setValueAt(item.getElapsedTime(), row, 5)
-                    queueModel.fireTableCellUpdated(row, 5)
+                    updateSpecificItem(item, project)
                 }
             }
             if (!hasRunningTasks) {
@@ -118,21 +104,10 @@ object AiProcessorToolWindow {
                 updateTimer = null
                 println("Timer stopped: no running tasks")
             }
-            queueTable.repaint()
         }.apply {
             start()
             println("Timer started for updating elapsed time")
         }
-    }
-
-    private fun groupedRowOffset(groupName: String): Int {
-        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
-        var offset = 0
-        for ((name, items) in groupedItems) {
-            if (name == groupName) return offset
-            offset += 1 + items.size // 1 for header, 1 row per item
-        }
-        return offset
     }
 
     private fun checkTimerState(project: IProject) {
@@ -144,5 +119,171 @@ object AiProcessorToolWindow {
             updateTimer = null
             println("Timer stopped: no running tasks after update")
         }
+    }
+}
+
+class QueueTreeCellRenderer(private val treeModel: DefaultTreeModel) : DefaultTreeCellRenderer() {
+    override fun getTreeCellRendererComponent(
+        tree: javax.swing.JTree?,
+        value: Any?,
+        sel: Boolean,
+        expanded: Boolean,
+        leaf: Boolean,
+        row: Int,
+        hasFocus: Boolean
+    ): Component {
+        val node = value as DefaultMutableTreeNode
+        val userObject = node.userObject
+        return if (userObject is QueueItem) {
+            val item = userObject
+            val project = tree?.getClientProperty("project") as IProject
+            val panel = JPanel(GridBagLayout())
+            val gbc = GridBagConstraints().apply {
+                fill = GridBagConstraints.HORIZONTAL
+                insets = Insets(0, 2, 0, 2)
+            }
+
+            // File Path
+            gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3
+            panel.add(JLabel(item.getDisplayPath(project)).apply { preferredSize = Dimension(150, 20) }, gbc)
+
+            // Prompt (non-editable in renderer, handled by editor)
+            gbc.gridx = 1; gbc.weightx = 0.4
+            panel.add(JLabel(item.prompt).apply { preferredSize = Dimension(150, 20) }, gbc)
+
+            // Output Destination (non-editable in renderer, handled by editor)
+            gbc.gridx = 2; gbc.weightx = 0.3
+            panel.add(JLabel(item.outputDestination).apply { preferredSize = Dimension(100, 20) }, gbc)
+
+            // Status
+            gbc.gridx = 3; gbc.weightx = 0.0
+            panel.add(JLabel(item.status.toString()).apply { preferredSize = Dimension(80, 20) }, gbc)
+
+            // Time
+            gbc.gridx = 4; gbc.weightx = 0.0
+            panel.add(JLabel(item.getElapsedTime()).apply { preferredSize = Dimension(50, 20) }, gbc)
+
+            // Save Icon
+            if (item.result != null && item.outputDestination.isNotBlank()) {
+                val saveIcon = UIManager.getIcon("FileView.floppyDriveIcon") ?: IconLoader.getIcon("/icons/save.png", javaClass)
+                val saveButton = JLabel(saveIcon).apply {
+                    toolTipText = "Save Result"
+                    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                    addMouseListener(object : java.awt.event.MouseAdapter() {
+                        override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                            AiProcessorToolWindow.saveResult(item, project)
+                        }
+                    })
+                }
+                gbc.gridx = 5; gbc.weightx = 0.0
+                panel.add(saveButton, gbc)
+            }
+
+            panel.isOpaque = true
+            panel.background = if (sel) getBackgroundSelectionColor() else getBackgroundNonSelectionColor()
+            panel.foreground = if (sel) getTextSelectionColor() else getTextNonSelectionColor()
+            panel
+        } else {
+            super.getTreeCellRendererComponent(tree, userObject, sel, expanded, leaf, row, hasFocus)
+        }
+    }
+}
+
+class QueueTreeCellEditor(private val treeModel: DefaultTreeModel) : AbstractCellEditor(), TreeCellEditor {
+    private val panel = JPanel(GridBagLayout())
+    private lateinit var item: QueueItem
+    private lateinit var project: IProject
+    private lateinit var promptField: JTextField
+    private lateinit var outputField: JTextField
+
+    override fun getTreeCellEditorComponent(
+        tree: JTree?,
+        value: Any?,
+        isSelected: Boolean,
+        expanded: Boolean,
+        leaf: Boolean,
+        row: Int
+    ): Component {
+        val node = value as DefaultMutableTreeNode
+        val userObject = node.userObject
+        if (userObject !is QueueItem) return JLabel(userObject.toString())
+
+        item = userObject
+        project = tree?.getClientProperty("project") as IProject
+        panel.removeAll()
+
+        val gbc = GridBagConstraints().apply {
+            fill = GridBagConstraints.HORIZONTAL
+            insets = Insets(0, 2, 0, 2)
+        }
+
+        // File Path (non-editable)
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3
+        panel.add(JLabel(item.getDisplayPath(project)).apply { preferredSize = Dimension(150, 20) }, gbc)
+
+        // Prompt (editable)
+        gbc.gridx = 1; gbc.weightx = 0.4
+        promptField = JTextField(item.prompt, 15).apply {
+            addActionListener { stopCellEditing() }
+        }
+        panel.add(promptField, gbc)
+
+        // Output Destination (editable)
+        gbc.gridx = 2; gbc.weightx = 0.3
+        outputField = JTextField(item.outputDestination, 10).apply {
+            addActionListener { stopCellEditing() }
+        }
+        panel.add(outputField, gbc)
+
+        // Status (non-editable)
+        gbc.gridx = 3; gbc.weightx = 0.0
+        panel.add(JLabel(item.status.toString()).apply { preferredSize = Dimension(80, 20) }, gbc)
+
+        // Time (non-editable)
+        gbc.gridx = 4; gbc.weightx = 0.0
+        panel.add(JLabel(item.getElapsedTime()).apply { preferredSize = Dimension(50, 20) }, gbc)
+
+        // Save Icon
+        if (item.result != null && item.outputDestination.isNotBlank()) {
+            val saveIcon = UIManager.getIcon("FileView.floppyDriveIcon") ?: IconLoader.getIcon("/icons/save.png", javaClass)
+            val saveButton = JLabel(saveIcon).apply {
+                toolTipText = "Save Result"
+                cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                addMouseListener(object : java.awt.event.MouseAdapter() {
+                    override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                        AiProcessorToolWindow.saveResult(item, project)
+                    }
+                })
+            }
+            gbc.gridx = 5; gbc.weightx = 0.0
+            panel.add(saveButton, gbc)
+        }
+
+        panel.isOpaque = true
+        panel.background = if (isSelected) UIManager.getColor("Tree.selectionBackground") else UIManager.getColor("Tree.background")
+        panel.foreground = if (isSelected) UIManager.getColor("Tree.selectionForeground") else UIManager.getColor("Tree.foreground")
+        return panel
+    }
+
+    override fun getCellEditorValue(): Any {
+        item.prompt = promptField.text
+        item.outputDestination = outputField.text
+        treeModel.nodeChanged(treeModel.root as TreeNode) // Refresh the tree
+        return item
+    }
+
+    override fun isCellEditable(event: EventObject?): Boolean {
+        if (event !is MouseEvent) return false
+        val tree = event.source as? JTree ?: return false
+        val path = tree.getPathForLocation(event.x, event.y) ?: return false
+        val node = path.lastPathComponent as? DefaultMutableTreeNode ?: return false
+        if (node.userObject !is QueueItem) return false
+
+        val bounds = tree.getPathBounds(path) ?: return false
+        val x = event.x - bounds.x
+        val promptX = 150 // Approx start of prompt field
+        val outputX = promptX + 150 // Approx start of output field
+        val endX = outputX + 100 // Approx end of output field
+        return x in promptX..endX // Editable if clicking within prompt or output field area
     }
 }

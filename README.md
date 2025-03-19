@@ -1,6 +1,12 @@
+
 # AI-Context Plugin
 
 The **AI-Context Plugin** is an IntelliJ IDEA plugin designed to integrate AI-driven code explanation and processing capabilities directly into your development environment. It leverages a local Ollama instance to provide context-aware code explanations and manages a queue-based system for processing files with AI interactions. This plugin enhances productivity by allowing developers to quickly understand code snippets and manage AI tasks efficiently within the IDE.
+
+## Methodology
+
+Project goal is to work with Grok to handle 95% of the Swing/plugin patterns, keeping as much of the boilerplate and UI nuance out of my head as possible. 
+I'm probably learning more about both than intended, but mostly things to avoid and to ask Grok to refactor
 
 ## Features
 

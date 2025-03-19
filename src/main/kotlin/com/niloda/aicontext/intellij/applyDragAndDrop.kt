@@ -1,76 +1,101 @@
 package com.niloda.aicontext.intellij
 
 import com.intellij.openapi.project.Project
-import com.intellij.ui.table.JBTable
+import com.intellij.ui.treeStructure.Tree
 import com.niloda.aicontext.model.QueueItem
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseMotionAdapter
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
-import javax.swing.JTable
-import javax.swing.ListSelectionModel
 import javax.swing.TransferHandler
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 
-fun JBTable.applyDragAndDrop(project: Project) {
+fun Tree.applyDragAndDrop(project: Project) {
+    isEditable = false
+    dragEnabled = true // Enable drag support
+    isFocusable = true // Ensure focus for events
+
     transferHandler = object : TransferHandler() {
         override fun createTransferable(c: JComponent?): Transferable? {
-            val table = c as? JBTable ?: return null
-            val row = table.selectedRow
-            if (row < 0 || table.isRowGroupHeader(row)) return null
-
-            val item = table.getItemAtRow(row) ?: return null
+            val tree = c as? Tree ?: return null
+            val path = tree.selectionPath ?: return null
+            val node = path.lastPathComponent as? DefaultMutableTreeNode ?: return null
+            val item = node.userObject as? QueueItem ?: return null
+            println("Creating transferable for item: ${item.file.name}")
             return object : Transferable {
                 override fun getTransferDataFlavors() = arrayOf(DataFlavor.stringFlavor)
                 override fun isDataFlavorSupported(flavor: DataFlavor?) = flavor == DataFlavor.stringFlavor
                 override fun getTransferData(flavor: DataFlavor?): Any {
+                    println("Transferring data: ${item.file.virtualFilePath}")
                     return item.file.virtualFilePath
                 }
             }
         }
 
+        override fun getSourceActions(c: JComponent?): Int {
+            println("Getting source actions for drag")
+            return MOVE // Specify MOVE action
+        }
+
         override fun canImport(info: TransferSupport): Boolean {
-            val table = info.component as? JBTable ?: return false
+            val tree = info.component as? Tree ?: return false
             if (!info.isDrop || !info.isDataFlavorSupported(DataFlavor.stringFlavor)) return false
-            val dropRow = (info.dropLocation as? JTable.DropLocation)?.row ?: return false
-            return !table.isRowGroupHeader(dropRow)
+            val dropLocation = info.dropLocation as? javax.swing.JTree.DropLocation ?: return false
+            val dropPath = dropLocation.path ?: return false
+            val dropNode = dropPath.lastPathComponent as? DefaultMutableTreeNode ?: return false
+            val canImport = dropNode.userObject is String
+            println("Can import to ${dropNode.userObject}? $canImport")
+            return canImport // Can only drop onto group nodes
         }
 
         override fun importData(info: TransferSupport): Boolean {
-            val table = info.component as? JBTable ?: return false
-            val dropRow = (info.dropLocation as? JTable.DropLocation)?.row ?: return false
-            if (table.isRowGroupHeader(dropRow)) return false
+            val tree = info.component as? Tree ?: return false
+            val dropLocation = info.dropLocation as? javax.swing.JTree.DropLocation ?: return false
+            val dropPath = dropLocation.path ?: return false
+            val dropNode = dropPath.lastPathComponent as? DefaultMutableTreeNode ?: return false
+            if (dropNode.userObject !is String) return false
 
             val transferable = info.transferable
             val filePath = transferable.getTransferData(DataFlavor.stringFlavor) as? String ?: return false
             val sourceItem = QueueManager.aiService.queue.find { it.file.virtualFilePath == filePath } ?: return false
-            val targetItem = table.getItemAtRow(dropRow) ?: return false
 
-            val targetGroup = targetItem.groupName
+            val targetGroup = dropNode.userObject.toString().removePrefix("Group: ")
+            println("Moving ${sourceItem.file.name} to group: $targetGroup")
             IntelliJAiFileProcessor.moveItemToGroup(sourceItem, targetGroup)
             AiProcessorToolWindow.updateQueue(project.adapt())
             return true
         }
     }
-    setDragEnabled(true)
-    dropMode = javax.swing.DropMode.ON
-    selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
-}
 
-private fun JBTable.getItemAtRow(row: Int): QueueItem? {
-    return GetItemAtRow(row)
-}
-
-object GetItemAtRow {
-    operator fun invoke(row: Int): QueueItem? {
-        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
-        var currentRow = 0
-        groupedItems.forEach { (_, items) ->
-            currentRow++ // Skip group header
-            items.forEachIndexed { index, item ->
-                val itemRow = currentRow + index
-                if (row == itemRow) return item
+    // Ensure selection on click
+    addMouseListener(object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+            val path = getPathForLocation(e.x, e.y)
+            if (path != null) {
+                selectionPath = path
+                println("Selected path: ${path.lastPathComponent}")
             }
-            currentRow += items.size
         }
-        return null
-    }
+    })
+
+    // Start drag on motion
+    addMouseMotionListener(object : MouseMotionAdapter() {
+        override fun mouseDragged(e: MouseEvent) {
+            val path = getPathForLocation(e.x, e.y) ?: return
+            val node = path.lastPathComponent as? DefaultMutableTreeNode ?: return
+            if (node.userObject is QueueItem) {
+                println("Starting drag for ${node.userObject}")
+                val handler = transferHandler
+                try {
+                    handler.exportAsDrag(this@applyDragAndDrop, e, TransferHandler.MOVE)
+                    println("Drag exported successfully")
+                } catch (ex: Exception) {
+                    println("Failed to export drag: ${ex.message}")
+                }
+            }
+        }
+    })
 }
