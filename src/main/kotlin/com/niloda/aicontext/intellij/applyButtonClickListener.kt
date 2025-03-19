@@ -21,7 +21,7 @@ fun JBTable.applyButtonClickListener(
             override fun mouseClicked(e: MouseEvent) {
                 val row = rowAtPoint(e.point)
                 val col = columnAtPoint(e.point)
-                if (rowIsGroupHeader(row)) return
+                if (isRowGroupHeader(row)) return
 
                 val item = getItemAtRow(row) ?: return
                 println("Mouse clicked: row=$row, col=$col, clickCount=${e.clickCount}")
@@ -74,24 +74,7 @@ fun JBTable.applyButtonClickListener(
     }
 }
 
-private fun JBTable.getItemAtRow(row: Int): QueueItem? {
-    val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
-    var currentRow = 0
-    groupedItems.forEach { (_, items) ->
-        currentRow++ // Skip group header
-        items.forEachIndexed { index, item ->
-            val itemRow = currentRow + index
-            if (row == itemRow) return item
-        }
-        currentRow += items.size
-    }
-    return null
-}
-
-private fun JBTable.rowIsGroupHeader(row: Int): Boolean {
-    val value = model.getValueAt(row, 0)?.toString() ?: return false
-    return value.startsWith("Group: ")
-}
+private fun JBTable.getItemAtRow(row: Int): QueueItem? = GetItemAtRow(row)
 
 private fun openResultInEditor(project: Project, fileName: String, result: String) {
     val fileEditorManager = FileEditorManager.getInstance(project)

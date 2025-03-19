@@ -7,6 +7,7 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
 import javax.swing.JTable
+import javax.swing.ListSelectionModel
 import javax.swing.TransferHandler
 
 fun JBTable.applyDragAndDrop(project: Project) {
@@ -14,7 +15,7 @@ fun JBTable.applyDragAndDrop(project: Project) {
         override fun createTransferable(c: JComponent?): Transferable? {
             val table = c as? JBTable ?: return null
             val row = table.selectedRow
-            if (row < 0 || table.rowIsGroupHeader(row)) return null
+            if (row < 0 || table.isRowGroupHeader(row)) return null
 
             val item = table.getItemAtRow(row) ?: return null
             return object : Transferable {
@@ -30,13 +31,13 @@ fun JBTable.applyDragAndDrop(project: Project) {
             val table = info.component as? JBTable ?: return false
             if (!info.isDrop || !info.isDataFlavorSupported(DataFlavor.stringFlavor)) return false
             val dropRow = (info.dropLocation as? JTable.DropLocation)?.row ?: return false
-            return !table.rowIsGroupHeader(dropRow)
+            return !table.isRowGroupHeader(dropRow)
         }
 
         override fun importData(info: TransferSupport): Boolean {
             val table = info.component as? JBTable ?: return false
             val dropRow = (info.dropLocation as? JTable.DropLocation)?.row ?: return false
-            if (table.rowIsGroupHeader(dropRow)) return false
+            if (table.isRowGroupHeader(dropRow)) return false
 
             val transferable = info.transferable
             val filePath = transferable.getTransferData(DataFlavor.stringFlavor) as? String ?: return false
@@ -51,23 +52,25 @@ fun JBTable.applyDragAndDrop(project: Project) {
     }
     setDragEnabled(true)
     dropMode = javax.swing.DropMode.ON
-}
-
-private fun JBTable.rowIsGroupHeader(row: Int): Boolean {
-    val value = model.getValueAt(row, 0)?.toString() ?: return false
-    return value.startsWith("Group: ")
+    selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
 }
 
 private fun JBTable.getItemAtRow(row: Int): QueueItem? {
-    val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
-    var currentRow = 0
-    groupedItems.forEach { (_, items) ->
-        currentRow++ // Skip group header
-        items.forEachIndexed { index, item ->
-            val itemRow = currentRow + index
-            if (row == itemRow) return item
+    return GetItemAtRow(row)
+}
+
+object GetItemAtRow {
+    operator fun invoke(row: Int): QueueItem? {
+        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
+        var currentRow = 0
+        groupedItems.forEach { (_, items) ->
+            currentRow++ // Skip group header
+            items.forEachIndexed { index, item ->
+                val itemRow = currentRow + index
+                if (row == itemRow) return item
+            }
+            currentRow += items.size
         }
-        currentRow += items.size
+        return null
     }
-    return null
 }

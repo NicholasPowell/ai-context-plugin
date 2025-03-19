@@ -2,6 +2,7 @@ package com.niloda.aicontext.intellij
 
 import com.intellij.ui.table.JBTable
 import javax.swing.JTable
+import javax.swing.ListSelectionModel
 
 fun JBTable.applyTableDimensions() {
     apply {

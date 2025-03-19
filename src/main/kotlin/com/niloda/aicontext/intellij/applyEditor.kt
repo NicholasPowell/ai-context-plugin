@@ -19,7 +19,7 @@ fun JBTable.applyEditor(queueModel: DefaultTableModel) {
                 row: Int,
                 column: Int
             ): Component {
-                if (rowIsGroupHeader(row)) {
+                if (this@apply.isRowGroupHeader(row)) {
                     return super.getTableCellEditorComponent(table, value, isSelected, row, column)
                 }
                 val item = QueueManager.aiService.queue.elementAtOrNull(row - groupedRowOffset(row))
@@ -42,6 +42,7 @@ fun JBTable.applyEditor(queueModel: DefaultTableModel) {
                         })
                         textField
                     }
+
                     2 -> { // Output Destination column
                         val textField = JTextField(item.outputDestination)
                         textField.addActionListener {
@@ -59,13 +60,14 @@ fun JBTable.applyEditor(queueModel: DefaultTableModel) {
                         })
                         textField
                     }
+
                     else -> super.getTableCellEditorComponent(table, value, isSelected, row, column)
                 }
             }
 
             override fun stopCellEditing(): Boolean {
                 val success = super.stopCellEditing()
-                if (success && !rowIsGroupHeader(editingRow)) {
+                if (success && !this@apply.isRowGroupHeader(editingRow)) {
                     val item = QueueManager.aiService.queue.elementAtOrNull(editingRow - groupedRowOffset(editingRow))
                     if (item != null) {
                         val newValue = getCellEditorValue() as String
@@ -81,11 +83,6 @@ fun JBTable.applyEditor(queueModel: DefaultTableModel) {
             }
         })
     }
-}
-
-private fun JBTable.rowIsGroupHeader(row: Int): Boolean {
-    val value = model.getValueAt(row, 0)?.toString() ?: return false
-    return value.startsWith("Group: ")
 }
 
 private fun JBTable.groupedRowOffset(row: Int): Int {

@@ -13,7 +13,7 @@ fun JBTable.applyRenderer() {
             override fun getTableCellRendererComponent(
                 table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int
             ): Component {
-                if (rowIsGroupHeader(row)) {
+                if (this@apply.isRowGroupHeader(row)) {
                     return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column).apply {
                         font = font.deriveFont(java.awt.Font.BOLD)
                     }
@@ -39,6 +39,7 @@ fun JBTable.applyRenderer() {
                         }
                         button
                     }
+
                     else -> super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
                 }
             }
@@ -46,21 +47,9 @@ fun JBTable.applyRenderer() {
     }
 }
 
-private fun JBTable.rowIsGroupHeader(row: Int): Boolean {
-    val value = model.getValueAt(row, 0)?.toString() ?: return false
-    return value.startsWith("Group: ")
-}
 
-private fun JBTable.getItemAtRow(row: Int): QueueItem? {
-    val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
-    var currentRow = 0
-    groupedItems.forEach { (_, items) ->
-        currentRow++ // Skip group header
-        items.forEachIndexed { index, item ->
-            val itemRow = currentRow + index
-            if (row == itemRow) return item
-        }
-        currentRow += items.size
-    }
-    return null
-}
+private fun JBTable.getItemAtRow(row: Int): QueueItem? = GetItemAtRow(row)
+
+fun JTable.isRowGroupHeader(row: Int): Boolean =
+    row > -1 && (model.getValueAt(row, 0)?.toString()?.startsWith("Group: ") == true)
+

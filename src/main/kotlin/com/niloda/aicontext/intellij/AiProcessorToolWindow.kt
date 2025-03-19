@@ -51,7 +51,38 @@ object AiProcessorToolWindow {
 
     fun setResult(item: QueueItem, project: IProject, result: String?) {
         item.result = result ?: "Error: Failed to process file"
-        updateQueue(project)
+        updateSpecificRow(item, project)  // New method instead of full update
+        checkTimerState(project)
+    }
+
+    private fun updateSpecificRow(item: QueueItem, project: IProject) {
+        val groupedItems = QueueManager.aiService.queue.groupBy { it.groupName }
+        var currentRow = 0
+
+        for ((groupName, items) in groupedItems) {
+            currentRow++ // Skip group header
+            val itemIndex = items.indexOf(item)
+            if (itemIndex != -1) {
+                val row = currentRow + itemIndex
+                queueModel.setValueAt(item.getDisplayPath(project), row, 0)
+                queueModel.setValueAt(item.prompt, row, 1)
+                queueModel.setValueAt(item.outputDestination, row, 2)
+                queueModel.setValueAt(
+                    when (item.status) {
+                        QueueItem.Status.PENDING -> "Run"
+                        QueueItem.Status.RUNNING -> "Cancel"
+                        else -> "Save"
+                    },
+                    row, 3
+                )
+                queueModel.setValueAt(item.status.toString(), row, 4)
+                queueModel.setValueAt(item.getElapsedTime(), row, 5)
+                queueModel.fireTableRowsUpdated(row, row)
+                queueTable.repaint()
+                return
+            }
+            currentRow += items.size
+        }
     }
 
     fun saveResult(item: QueueItem, project: IProject) {
