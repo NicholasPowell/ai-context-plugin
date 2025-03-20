@@ -1,16 +1,13 @@
 package com.niloda.aicontext.intellij
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.treeStructure.Tree
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
-import java.awt.*
+import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.*
 import javax.swing.tree.*
-import java.awt.event.MouseEvent
-import java.util.EventObject
 
 object AiProcessorToolWindow {
     private lateinit var queueTree: Tree
@@ -27,7 +24,26 @@ object AiProcessorToolWindow {
         queueTree.cellRenderer = QueueTreeCellRenderer(treeModel)
         queueTree.cellEditor = QueueTreeCellEditor(treeModel)
         queueTree.isEditable = true
+        queueTree.rowHeight = 30 // Fixed row height
         queueTree.addMouseListener(QueueTreeMouseListener(project))
+        queueTree.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mousePressed(e: MouseEvent) {
+                val path = queueTree.getPathForLocation(e.x, e.y) ?: return
+                val node = path.lastPathComponent as? DefaultMutableTreeNode ?: return
+                val item = node.userObject as? QueueItem ?: return
+                val bounds = queueTree.getPathBounds(path) ?: return
+                val x = e.x - bounds.x
+                val runButtonX = 434 // Approx start of button (150 + 150 + 100 + 80 + 50 + insets)
+                val runButtonEndX = runButtonX + 24 // Button width
+                if (x in runButtonX..runButtonEndX && item.status == QueueItem.Status.PENDING) {
+                    println("Run button area clicked for ${item.file.name} at x=$x")
+                    QueueManager.processFile(item, project.adapt())
+                    updateQueue(project.adapt())
+                    startTimer(project.adapt())
+                }
+            }
+        })
+        println("Tree initialized with fixed row height: 30 and custom Run button listener")
     }
 
     fun addToQueue(item: QueueItem, project: IProject) {
@@ -122,193 +138,3 @@ object AiProcessorToolWindow {
     }
 }
 
-class QueueTreeCellRenderer(private val treeModel: DefaultTreeModel) : DefaultTreeCellRenderer() {
-    override fun getTreeCellRendererComponent(
-        tree: javax.swing.JTree?,
-        value: Any?,
-        sel: Boolean,
-        expanded: Boolean,
-        leaf: Boolean,
-        row: Int,
-        hasFocus: Boolean
-    ): Component {
-        val node = value as DefaultMutableTreeNode
-        val userObject = node.userObject
-        return if (userObject is QueueItem) {
-            val item = userObject
-            val project = tree?.getClientProperty("project") as IProject
-            val panel = JPanel(GridBagLayout())
-            val gbc = GridBagConstraints().apply {
-                insets = Insets(0, 2, 0, 2)
-                anchor = GridBagConstraints.WEST
-            }
-
-            // File Path (fixed width, no leading space)
-            gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0
-            panel.add(JLabel(item.getDisplayPath(project)).apply {
-                preferredSize = Dimension(150, 20)
-                maximumSize = Dimension(150, 20) // Prevent stretching
-            }, gbc)
-
-            // Prompt
-            gbc.gridx = 1; gbc.weightx = 0.0
-            panel.add(JLabel(item.prompt).apply {
-                preferredSize = Dimension(150, 20)
-                maximumSize = Dimension(150, 20)
-                border = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1)
-                toolTipText = "Click to edit prompt"
-            }, gbc)
-
-            // Output Destination
-            gbc.gridx = 2; gbc.weightx = 0.0
-            panel.add(JLabel(item.outputDestination).apply {
-                preferredSize = Dimension(100, 20)
-                maximumSize = Dimension(100, 20)
-                border = BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1)
-                toolTipText = "Click to edit output destination"
-            }, gbc)
-
-            // Status
-            gbc.gridx = 3; gbc.weightx = 0.0
-            panel.add(JLabel(item.status.toString()).apply {
-                preferredSize = Dimension(80, 20)
-            }, gbc)
-
-            // Time
-            gbc.gridx = 4; gbc.weightx = 0.0
-            panel.add(JLabel(item.getElapsedTime()).apply {
-                preferredSize = Dimension(50, 20)
-            }, gbc)
-
-            // Save Icon
-            if (item.result != null && item.outputDestination.isNotBlank()) {
-                val saveIcon = UIManager.getIcon("FileView.floppyDriveIcon") ?: IconLoader.getIcon("/icons/save.png", javaClass)
-                val saveButton = JLabel(saveIcon).apply {
-                    toolTipText = "Save Result"
-                    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                    addMouseListener(object : java.awt.event.MouseAdapter() {
-                        override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                            AiProcessorToolWindow.saveResult(item, project)
-                        }
-                    })
-                }
-                gbc.gridx = 5; gbc.weightx = 0.0
-                panel.add(saveButton, gbc)
-            }
-
-            // Glue to absorb extra space on the right
-            gbc.gridx = 6; gbc.weightx = 1.0
-            gbc.fill = GridBagConstraints.HORIZONTAL
-            panel.add(Box.createHorizontalGlue(), gbc)
-
-            panel.isOpaque = true
-            panel.background = if (sel) getBackgroundSelectionColor() else getBackgroundNonSelectionColor()
-            panel.foreground = if (sel) getTextSelectionColor() else getTextNonSelectionColor()
-            panel
-        } else {
-            super.getTreeCellRendererComponent(tree, userObject, sel, expanded, leaf, row, hasFocus)
-        }
-    }
-}
-
-class QueueTreeCellEditor(private val treeModel: DefaultTreeModel) : AbstractCellEditor(), TreeCellEditor {
-    private val panel = JPanel(GridBagLayout())
-    private lateinit var item: QueueItem
-    private lateinit var project: IProject
-    private lateinit var promptField: JTextField
-    private lateinit var outputField: JTextField
-
-    override fun getTreeCellEditorComponent(
-        tree: JTree?,
-        value: Any?,
-        isSelected: Boolean,
-        expanded: Boolean,
-        leaf: Boolean,
-        row: Int
-    ): Component {
-        val node = value as DefaultMutableTreeNode
-        val userObject = node.userObject
-        if (userObject !is QueueItem) return JLabel(userObject.toString())
-
-        item = userObject
-        project = tree?.getClientProperty("project") as IProject
-        panel.removeAll()
-
-        val gbc = GridBagConstraints().apply {
-            fill = GridBagConstraints.HORIZONTAL
-            insets = Insets(0, 2, 0, 2)
-        }
-
-        // File Path (non-editable)
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3
-        panel.add(JLabel(item.getDisplayPath(project)).apply { preferredSize = Dimension(150, 20) }, gbc)
-
-        // Prompt (editable)
-        gbc.gridx = 1; gbc.weightx = 0.4
-        promptField = JTextField(item.prompt, 15).apply {
-            addActionListener { stopCellEditing() }
-            preferredSize = Dimension(150, 20)
-        }
-        panel.add(promptField, gbc)
-
-        // Output Destination (editable)
-        gbc.gridx = 2; gbc.weightx = 0.3
-        outputField = JTextField(item.outputDestination, 10).apply {
-            addActionListener { stopCellEditing() }
-            preferredSize = Dimension(100, 20)
-        }
-        panel.add(outputField, gbc)
-
-        // Status (non-editable)
-        gbc.gridx = 3; gbc.weightx = 0.0
-        panel.add(JLabel(item.status.toString()).apply { preferredSize = Dimension(80, 20) }, gbc)
-
-        // Time (non-editable)
-        gbc.gridx = 4; gbc.weightx = 0.0
-        panel.add(JLabel(item.getElapsedTime()).apply { preferredSize = Dimension(50, 20) }, gbc)
-
-        // Save Icon
-        if (item.result != null && item.outputDestination.isNotBlank()) {
-            val saveIcon = UIManager.getIcon("FileView.floppyDriveIcon") ?: IconLoader.getIcon("/icons/save.png", javaClass)
-            val saveButton = JLabel(saveIcon).apply {
-                toolTipText = "Save Result"
-                cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                addMouseListener(object : java.awt.event.MouseAdapter() {
-                    override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                        AiProcessorToolWindow.saveResult(item, project)
-                    }
-                })
-            }
-            gbc.gridx = 5; gbc.weightx = 0.0
-            panel.add(saveButton, gbc)
-        }
-
-        panel.isOpaque = true
-        panel.background = if (isSelected) UIManager.getColor("Tree.selectionBackground") else UIManager.getColor("Tree.background")
-        panel.foreground = if (isSelected) UIManager.getColor("Tree.selectionForeground") else UIManager.getColor("Tree.foreground")
-        return panel
-    }
-
-    override fun getCellEditorValue(): Any {
-        item.prompt = promptField.text
-        item.outputDestination = outputField.text
-        treeModel.nodeChanged(treeModel.root as TreeNode)
-        return item
-    }
-
-    override fun isCellEditable(event: EventObject?): Boolean {
-        if (event !is MouseEvent) return false
-        val tree = event.source as? JTree ?: return false
-        val path = tree.getPathForLocation(event.x, event.y) ?: return false
-        val node = path.lastPathComponent as? DefaultMutableTreeNode ?: return false
-        if (node.userObject !is QueueItem) return false
-
-        val bounds = tree.getPathBounds(path) ?: return false
-        val x = event.x - bounds.x
-        val promptX = 154 // Start after file path (150 + 2 inset + 2 buffer)
-        val promptEndX = promptX + 150 // Prompt width
-        val outputX = promptEndX + 4 // After prompt (2 insets on each side)
-        val outputEndX = outputX + 100 // Output width
-        return x in promptX..promptEndX || x in outputX..outputEndX
-    }
-}
