@@ -45,13 +45,11 @@ class QueueTreeMouseListener(private val project: Project) : MouseAdapter() {
             QueueItem.Status.PENDING -> {
                 popup.add("Run").addActionListener {
                     QueueManager.processFile(item, project.adapt())
-                    AiProcessorToolWindow.updateQueue(project.adapt())
                 }
             }
             QueueItem.Status.RUNNING -> {
                 popup.add("Cancel").addActionListener {
                     QueueManager.terminate(item.file)
-                    AiProcessorToolWindow.updateQueue(project.adapt())
                 }
             }
             QueueItem.Status.DONE -> {

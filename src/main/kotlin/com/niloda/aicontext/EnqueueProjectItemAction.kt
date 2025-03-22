@@ -48,7 +48,6 @@ class EnqueueProjectItemAction : AnAction() {
                 Messages.showErrorDialog(project, "Selected item is not a file or directory!", "AI Context")
             }
         }
-        AiProcessorToolWindow.updateQueue(project.adapt()) // Update UI after enqueuing
     }
 
     override fun update(e: AnActionEvent) {

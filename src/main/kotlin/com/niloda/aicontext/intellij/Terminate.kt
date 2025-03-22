@@ -20,9 +20,6 @@ object Terminate {
         if (item != null && item.status == QueueItem.Status.RUNNING) {
             item.status = QueueItem.Status.CANCELLED
             item.startTime = null
-            UIUtil.invokeLaterIfNeeded {
-                AiProcessorToolWindow.updateQueue((task.project as Project).adapt())
-            }
         }
     }
 }

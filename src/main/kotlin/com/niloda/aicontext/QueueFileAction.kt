@@ -30,7 +30,6 @@ class QueueFileAction : AnAction() {
         ) ?: return // Cancelled dialog returns null
         IntelliJAiFileProcessor.enqueueFileWithGroup(psiFile.adapt(), groupName)
         Messages.showInfoMessage(project, "Enqueued file: ${psiFile.name} in group: $groupName", "AI Context")
-        AiProcessorToolWindow.updateQueue(project.adapt()) // Update UI after enqueuing
     }
 
     override fun update(e: AnActionEvent) {

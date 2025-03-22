@@ -65,7 +65,6 @@ fun Tree.applyDragAndDrop(project: Project) {
             val targetGroup = dropNode.userObject.toString().removePrefix("Group: ")
             println("Moving ${sourceItem.file.name} to group: $targetGroup")
             IntelliJAiFileProcessor.moveItemToGroup(sourceItem, targetGroup)
-            AiProcessorToolWindow.updateQueue(project.adapt())
             return true
         }
     }

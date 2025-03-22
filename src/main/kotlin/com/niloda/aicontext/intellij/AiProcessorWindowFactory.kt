@@ -11,6 +11,5 @@ class AiProcessorWindowFactory : ToolWindowFactory {
         val composePanel = AiProcessorToolWindow.createComposePanel(project)
         val content = ContentFactory.getInstance().createContent(composePanel, "", false)
         toolWindow.contentManager.addContent(content)
-        AiProcessorToolWindow.updateQueue(project.adapt())
     }
 }

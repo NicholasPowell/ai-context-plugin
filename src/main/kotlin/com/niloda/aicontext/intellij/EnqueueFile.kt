@@ -16,6 +16,5 @@ object EnqueueFile {
         val item = QueueItem(file)
         IntelliJAiFileProcessor.queue.add(item)
         println("Queued file: ${file.name}, Queue size: ${IntelliJAiFileProcessor.queue.size}")
-        AiProcessorToolWindow.addToQueue(item, (file as? IntelliJFileAdapter)?.psiFile?.project?.adapt() ?: return)
     }
 }

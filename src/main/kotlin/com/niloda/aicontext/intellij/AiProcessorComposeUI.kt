@@ -2,20 +2,14 @@ package com.niloda.aicontext.intellij
 
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -43,10 +37,12 @@ fun AiProcessorComposeUI(project: IProject) {
     val queueItems by queueItemsState
     val groupedItems by derivedStateOf { queueItems.groupBy { it.groupName } }
 
+    val runningTasksState = remember { mutableStateOf(queueItems.any { it.status == QueueItem.Status.RUNNING }) }
     // State to track if there are running tasks
-    var hasRunningTasks by remember { mutableStateOf(queueItems.any { it.status == QueueItem.Status.RUNNING }) }
+    var hasRunningTasks by runningTasksState
 
-    // Periodically update the queue items and check for running tasks
+//    PeriodicallyUpdateQueueItemsAndCheckRunningTasks(queueItems, queueItemsState, runningTasksState)
+//    ForceRecompositionForRunningTasks(hasRunningTasks, runningTasksState, queueItemsState)
     LaunchedEffect(Unit) {
         while (true) {
             val newQueueItems = QueueManager.aiService.queue.toList()
@@ -54,93 +50,37 @@ fun AiProcessorComposeUI(project: IProject) {
                 println("Queue updated: ${newQueueItems.size} items")
                 queueItemsState.value = newQueueItems
             }
-            hasRunningTasks = newQueueItems.any { it.status == QueueItem.Status.RUNNING }
+            runningTasksState.value = newQueueItems.any { it.status == QueueItem.Status.RUNNING }
             delay(1000)
         }
     }
-
-    // Separate LaunchedEffect to force recomposition for running tasks
     LaunchedEffect(hasRunningTasks) {
-        if (hasRunningTasks) {
+        if (runningTasksState.value) {
             while (true) {
                 queueItemsState.value = queueItemsState.value.toList() // Force recomposition
                 delay(1000)
                 if (!queueItemsState.value.any { it.status == QueueItem.Status.RUNNING }) {
-                    hasRunningTasks = false
+                    runningTasksState.value = false
                     break
                 }
             }
         }
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor) // Set panel background to Darcula dark gray
     ) {
         if (queueItems.isEmpty()) {
-            Text(
-                text = "No items in queue. Enqueue files to see them here.",
-                modifier = Modifier.align(Alignment.Center),
-                style = MaterialTheme.typography.body1,
-                color = textColor // Light gray text
-            )
+            NoItemsInQueue(textColor)
         } else {
             val scrollState = rememberScrollState()
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
+                modifier = Modifier.fillMaxSize().padding(8.dp),
                 state = rememberLazyListState()
             ) {
                 groupedItems.forEach { (groupName, items) ->
-                    item(key = "header_$groupName") {
-                        val isExpandedState = remember { mutableStateOf(true) }
-                        val isExpanded by isExpandedState
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(headerBackground) // Slightly lighter background for headers
-                                .clickable { isExpandedState.value = !isExpandedState.value }
-                                .padding(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Group: $groupName (${items.size})",
-                                style = MaterialTheme.typography.h6,
-                                modifier = Modifier.weight(1f),
-                                color = textColor // Light gray text
-                            )
-                            Text(
-                                text = if (isExpanded) "▼" else "▶",
-                                modifier = Modifier.padding(end = 8.dp),
-                                color = textColor // Light gray text
-                            )
-                        }
-
-                        if (isExpanded) {
-                            this@LazyColumn.items(
-                                items = items,
-                                key = { item -> item.file.virtualFilePath + item.status }
-                            ) { item ->
-                                QueueTreeCell(
-                                    item = item,
-                                    project = project,
-                                    isSelected = false,
-                                    onRunClick = {
-                                        QueueManager.processFile(item, project)
-                                        AiProcessorToolWindow.startTimer()
-                                    },
-                                    onSaveClick = {
-                                        AiProcessorToolWindow.saveResult(item, project)
-                                    },
-                                    onPromptChange = { /* Handled in QueueTreeCell */ },
-                                    onOutputDestChange = { /* Handled in QueueTreeCell */ }
-                                )
-                            }
-                        }
-                    }
+                    Group(groupName, headerBackground, items, textColor, project)
                 }
             }
 

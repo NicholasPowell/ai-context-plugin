@@ -28,20 +28,6 @@ object AiProcessorToolWindow {
         }
     }
 
-    fun addToQueue(item: QueueItem, project: IProject) {
-        updateQueue(project)
-    }
-
-    fun updateQueue(project: IProject) {
-        // Force repaint of the Compose UI
-        ApplicationManager.getApplication().invokeLater {
-            val intelliJProject = (project as? IntelliJProjectAdapter)?.project
-            val toolWindowManager = intelliJProject?.let { ToolWindowManager.getInstance(it) }
-            val content = toolWindowManager?.getToolWindow("AI Processor")?.contentManager?.contents?.firstOrNull()
-            (content?.component as? ComposePanel)?.repaint()
-        }
-    }
-
     fun setResult(item: QueueItem, result: String?) {
         item.result = result ?: "Error: Failed to process file"
     }
@@ -61,8 +47,4 @@ object AiProcessorToolWindow {
         }
     }
 
-    // Remove startTimer and checkTimerState as they are now handled in Compose
-    fun startTimer() {
-        // No-op, timer is now in Compose
-    }
 }

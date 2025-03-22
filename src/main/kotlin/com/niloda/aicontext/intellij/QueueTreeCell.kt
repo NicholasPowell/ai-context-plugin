@@ -2,6 +2,7 @@ package com.niloda.aicontext.intellij
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -60,7 +61,8 @@ fun QueueTreeCell(
         modifier = Modifier
             .fillMaxWidth()
             .background(if (isSelected) selectedBackground else rowBackground) // Selection or default background
-            .padding(4.dp),
+            .padding(4.dp)
+            .border(1.dp, Color.Red),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
