@@ -1,8 +1,4 @@
-package com.niloda.aicontext.intellij
-
-import com.niloda.aicontext.intellij.adapt.IntelliJFileAdapter
-import com.niloda.aicontext.model.IFile
-import com.niloda.aicontext.model.QueueItem
+package com.niloda.aicontext.model
 
 object EnqueueFile {
     operator fun invoke(file: IFile) {

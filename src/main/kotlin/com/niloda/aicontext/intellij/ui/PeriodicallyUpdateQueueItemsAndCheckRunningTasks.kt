@@ -1,9 +1,10 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import com.niloda.aicontext.model.QueueItem
+import com.niloda.aicontext.model.QueueManager
 import kotlinx.coroutines.delay
 
 @Composable

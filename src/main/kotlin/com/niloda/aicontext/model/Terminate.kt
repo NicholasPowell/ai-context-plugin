@@ -1,11 +1,7 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.model
 
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.Project
-import com.intellij.util.ui.UIUtil
-import com.niloda.aicontext.model.IFile
-import com.niloda.aicontext.model.QueueItem
 
 object Terminate {
     operator fun invoke(

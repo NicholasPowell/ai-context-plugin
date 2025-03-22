@@ -4,9 +4,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ui.Messages
-import com.niloda.aicontext.intellij.AiProcessorToolWindow
-import com.niloda.aicontext.intellij.IntelliJAiFileProcessor
-import com.niloda.aicontext.intellij.adapt
+import com.niloda.aicontext.intellij.adapt.adapt
+import com.niloda.aicontext.model.IntelliJAiFileProcessor
 
 class QueueFileAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {

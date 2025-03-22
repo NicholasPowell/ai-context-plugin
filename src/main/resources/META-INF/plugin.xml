@@ -27,12 +27,6 @@
 
     <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
-
-        <toolWindow id="AI Context" anchor="bottom" factoryClass="com.niloda.aicontext.intellij.AiProcessorWindowFactory"/>
-        <applicationConfigurable
-                id="com.niloda.aicontext.intellij.Settings"
-                displayName="Ai-Context Settings"
-                instance="com.niloda.aicontext.intellij.Settings"
-        />
+        <toolWindow id="AI Context" anchor="bottom" factoryClass="com.niloda.aicontext.intellij.uibridge.AiProcessorWindowFactory"/>
     </extensions>
 </idea-plugin>

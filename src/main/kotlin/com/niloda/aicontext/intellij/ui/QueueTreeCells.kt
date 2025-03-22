@@ -1,9 +1,11 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import com.niloda.aicontext.intellij.uibridge.AiProcessorToolWindow
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
+import com.niloda.aicontext.model.QueueManager
 
 fun QueueTreeCells(
     scope: LazyListScope,

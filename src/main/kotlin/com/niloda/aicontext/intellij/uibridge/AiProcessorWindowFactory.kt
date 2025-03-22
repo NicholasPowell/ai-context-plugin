@@ -1,4 +1,4 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.uibridge
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow

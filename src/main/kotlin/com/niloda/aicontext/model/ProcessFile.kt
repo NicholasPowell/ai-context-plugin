@@ -1,4 +1,4 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.model
 
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -6,9 +6,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.util.ui.UIUtil
 import com.niloda.aicontext.intellij.adapt.IntelliJProjectAdapter
-import com.niloda.aicontext.model.IFile
-import com.niloda.aicontext.model.IProject
-import com.niloda.aicontext.model.QueueItem
+import com.niloda.aicontext.intellij.uibridge.AiProcessorToolWindow
 
 object ProcessFile {
     operator fun invoke(

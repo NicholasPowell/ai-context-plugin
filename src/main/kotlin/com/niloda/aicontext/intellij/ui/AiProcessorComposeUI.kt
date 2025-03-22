@@ -1,29 +1,19 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.ui
 
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import com.niloda.aicontext.model.QueueManager
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
-import kotlinx.coroutines.delay
 
 @Composable
 fun AiProcessorComposeUI(project: IProject) {
@@ -49,23 +39,10 @@ fun AiProcessorComposeUI(project: IProject) {
             .fillMaxSize()
             .background(backgroundColor) // Set panel background to Darcula dark gray
     ) {
-        if (queueItems.isEmpty()) {
+        if (queueItems.isEmpty())
             NoItemsInQueue(textColor)
-        } else {
-            val scrollState = rememberScrollState()
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(8.dp),
-                state = rememberLazyListState()
-            ) {
-                groupedItems.forEach { (groupName, items) ->
-                    Group(this, groupName, headerBackground, items, textColor, project)
-                }
-            }
-
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState)
-            )
-        }
+        else
+            ScrollableGroups(groupedItems, headerBackground, textColor, project)
     }
 }
+

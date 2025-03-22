@@ -1,10 +1,8 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.uibridge
 
-import androidx.compose.ui.awt.ComposePanel
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindowManager
-import com.niloda.aicontext.intellij.adapt.IntelliJProjectAdapter
+import com.niloda.aicontext.intellij.adapt.adapt
+import com.niloda.aicontext.intellij.ui.AiProcessorComposeUI
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 import org.jetbrains.jewel.bridge.JewelComposePanel

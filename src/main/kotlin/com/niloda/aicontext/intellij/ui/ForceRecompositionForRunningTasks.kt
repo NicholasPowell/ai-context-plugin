@@ -1,4 +1,4 @@
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

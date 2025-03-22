@@ -1,5 +1,5 @@
 // === File: src/main/kotlin/com/niloda/aicontext/intellij/Group.kt
-package com.niloda.aicontext.intellij
+package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
