@@ -41,31 +41,9 @@ fun AiProcessorComposeUI(project: IProject) {
     // State to track if there are running tasks
     var hasRunningTasks by runningTasksState
 
-//    PeriodicallyUpdateQueueItemsAndCheckRunningTasks(queueItems, queueItemsState, runningTasksState)
-//    ForceRecompositionForRunningTasks(hasRunningTasks, runningTasksState, queueItemsState)
-    LaunchedEffect(Unit) {
-        while (true) {
-            val newQueueItems = QueueManager.aiService.queue.toList()
-            if (newQueueItems != queueItems) {
-                println("Queue updated: ${newQueueItems.size} items")
-                queueItemsState.value = newQueueItems
-            }
-            runningTasksState.value = newQueueItems.any { it.status == QueueItem.Status.RUNNING }
-            delay(1000)
-        }
-    }
-    LaunchedEffect(hasRunningTasks) {
-        if (runningTasksState.value) {
-            while (true) {
-                queueItemsState.value = queueItemsState.value.toList() // Force recomposition
-                delay(1000)
-                if (!queueItemsState.value.any { it.status == QueueItem.Status.RUNNING }) {
-                    runningTasksState.value = false
-                    break
-                }
-            }
-        }
-    }
+    PeriodicallyUpdateQueueItemsAndCheckRunningTasks(queueItems, queueItemsState, runningTasksState)
+    ForceRecompositionForRunningTasks(hasRunningTasks, runningTasksState, queueItemsState)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -80,7 +58,7 @@ fun AiProcessorComposeUI(project: IProject) {
                 state = rememberLazyListState()
             ) {
                 groupedItems.forEach { (groupName, items) ->
-                    Group(groupName, headerBackground, items, textColor, project)
+                    Group(this, groupName, headerBackground, items, textColor, project)
                 }
             }
 

@@ -12,5 +12,15 @@ fun PeriodicallyUpdateQueueItemsAndCheckRunningTasks(
     queueItemsState: MutableState<List<QueueItem>>,
     runningTasksState: MutableState<Boolean>
 ) {
-
+    LaunchedEffect(Unit) {
+        while (true) {
+            val newQueueItems = QueueManager.aiService.queue.toList()
+            if (newQueueItems != queueItems) {
+                println("Queue updated: ${newQueueItems.size} items")
+                queueItemsState.value = newQueueItems
+            }
+            runningTasksState.value = newQueueItems.any { it.status == QueueItem.Status.RUNNING }
+            delay(1000)
+        }
+    }
 }

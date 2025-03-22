@@ -12,5 +12,16 @@ fun ForceRecompositionForRunningTasks(
     runningTasksState: MutableState<Boolean>,
     queueItemsState: MutableState<List<QueueItem>>
 ) {
-
+    LaunchedEffect(hasRunningTasks) {
+        if (runningTasksState.value) {
+            while (true) {
+                queueItemsState.value = queueItemsState.value.toList() // Force recomposition
+                delay(1000)
+                if (!queueItemsState.value.any { it.status == QueueItem.Status.RUNNING }) {
+                    runningTasksState.value = false
+                    break
+                }
+            }
+        }
+    }
 }
