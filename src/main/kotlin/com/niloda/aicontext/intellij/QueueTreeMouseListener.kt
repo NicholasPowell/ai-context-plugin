@@ -46,7 +46,6 @@ class QueueTreeMouseListener(private val project: Project) : MouseAdapter() {
                 popup.add("Run").addActionListener {
                     QueueManager.processFile(item, project.adapt())
                     AiProcessorToolWindow.updateQueue(project.adapt())
-                    AiProcessorToolWindow.startTimer(project.adapt())
                 }
             }
             QueueItem.Status.RUNNING -> {

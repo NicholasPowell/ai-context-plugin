@@ -50,7 +50,7 @@ object ProcessFile {
                 )
 
                 UIUtil.invokeLaterIfNeeded {
-                    AiProcessorToolWindow.setResult(item, project, response)
+                    AiProcessorToolWindow.setResult(item, response)
                 }
             }
 

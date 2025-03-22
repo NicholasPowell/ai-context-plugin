@@ -38,6 +38,7 @@ object IntelliJAiFileProcessor : AiFileProcessor {
         queue.add(item)
         println("Queued file: ${file.name} in group: $groupName, Queue size: ${queue.size}")
         AiProcessorToolWindow.addToQueue(item, (file as? IntelliJFileAdapter)?.psiFile?.project?.adapt() ?: return)
+        AiProcessorToolWindow.updateQueue((file as? IntelliJFileAdapter)?.psiFile?.project?.adapt() ?: return)
     }
 
     override fun processFile(item: QueueItem, project: IProject) {

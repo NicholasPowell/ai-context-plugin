@@ -89,7 +89,6 @@ class QueueTreeCellEditor(private val treeModel: DefaultTreeModel) : AbstractCel
             addActionListener {
                 QueueManager.processFile(item, project)
                 AiProcessorToolWindow.updateQueue(project)
-                AiProcessorToolWindow.startTimer(project)
                 stopCellEditing() // Exit editing mode after clicking
             }
         }
