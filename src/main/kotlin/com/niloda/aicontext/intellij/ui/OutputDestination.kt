@@ -1,4 +1,3 @@
-// File: src/main/kotlin/com/niloda/aicontext/intellij/ui/OutputDestination.kt
 package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.background
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -23,6 +21,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
@@ -40,14 +39,20 @@ fun OutputDestination(
     onRunClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
+    // IntelliJ Darcula-inspired colors
+    val textColor = Color(0xFFA9B7C6) // Light gray text (Darcula)
+    val borderColor = Color(0xFF555555) // Darker gray border (Darcula)
+    val iconColor = Color(0xFFA9B7C6) // Light gray for icons
+    val editingBackground = Color(0xFF3C3F41) // Slightly lighter gray for editing background
+
     var isEditingOutputDest by editingOutputDestState
     var outputDest by outputDestState
     Box(
         modifier = Modifier
             .width(QueueUIConstants.OUTPUT_DEST_WIDTH.dp)
             .padding(end = QueueUIConstants.INSET.dp)
-            .border(if (isEditingOutputDest) 1.dp else 0.dp, MaterialTheme.colors.secondary)
-            .background(if (isEditingOutputDest) MaterialTheme.colors.surface else MaterialTheme.colors.background)
+            .border(if (isEditingOutputDest) 1.dp else 0.dp, borderColor)
+            .background(if (isEditingOutputDest) editingBackground else Color.Transparent)
             .clickable { isEditingOutputDest = true }
     ) {
         if (isEditingOutputDest) {
@@ -61,14 +66,14 @@ fun OutputDestination(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp),
-                textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colors.onBackground)
+                textStyle = TextStyle(fontSize = 14.sp, color = textColor)
             )
         } else {
             Text(
                 text = outputDest,
                 modifier = Modifier.padding(2.dp),
                 style = TextStyle(fontSize = 14.sp),
-                color = MaterialTheme.colors.onBackground,
+                color = textColor,
                 maxLines = 1
             )
         }
@@ -81,7 +86,7 @@ fun OutputDestination(
             .width(QueueUIConstants.STATUS_WIDTH.dp)
             .padding(end = QueueUIConstants.INSET.dp),
         style = TextStyle(fontSize = 14.sp),
-        color = MaterialTheme.colors.onBackground
+        color = textColor
     )
 
     // Run Button
@@ -94,7 +99,7 @@ fun OutputDestination(
                 .size(20.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = "Run this item", tint = MaterialTheme.colors.onBackground)
+            Icon(Icons.Default.PlayArrow, contentDescription = "Run this item", tint = iconColor)
         }
     } else {
         Spacer(modifier = Modifier.size(20.dp))
@@ -110,7 +115,7 @@ fun OutputDestination(
                 .size(20.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Save Result", tint = MaterialTheme.colors.onBackground)
+            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Save Result", tint = iconColor)
         }
     }
 }

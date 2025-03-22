@@ -1,15 +1,14 @@
-// File: src/main/kotlin/com/niloda/aicontext/intellij/ui/QueueTreeCell.kt
 package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +29,11 @@ fun QueueTreeCell(
     onPromptChange: (String) -> Unit,
     onOutputDestChange: (String) -> Unit
 ) {
+    // IntelliJ Darcula-inspired colors
+    val rowBackground = Color(0xFF2B2B2B) // Dark gray background (Darcula)
+    val selectedBackground = Color(0xFF1A4B7D) // Blue selection highlight (Darcula)
+    val textColor = Color(0xFFA9B7C6) // Light gray text (Darcula)
+
     var promptState: MutableState<String> = remember { mutableStateOf(item.prompt) }
     var outputDestState: MutableState<String> = remember { mutableStateOf(item.outputDestination) }
     var editingPrompt: MutableState<Boolean> = remember { mutableStateOf(false) }
@@ -56,7 +60,7 @@ fun QueueTreeCell(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.background)
+            .background(if (isSelected) selectedBackground else rowBackground) // Selection or default background
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -67,7 +71,7 @@ fun QueueTreeCell(
                 .padding(end = QueueUIConstants.INSET.dp),
             style = TextStyle(fontSize = 14.sp),
             maxLines = 1,
-            color = MaterialTheme.colors.onBackground
+            color = textColor // Light gray text
         )
         Prompt(
             item = item,
@@ -83,13 +87,14 @@ fun QueueTreeCell(
             onRunClick = onRunClick,
             onSaveClick = onSaveClick
         )
+        // Use the local elapsedTime state to display the time
         Text(
             text = elapsedTime,
             modifier = Modifier
                 .width(QueueUIConstants.TIME_WIDTH.dp)
                 .padding(end = QueueUIConstants.INSET.dp),
             style = TextStyle(fontSize = 14.sp),
-            color = MaterialTheme.colors.onBackground
+            color = textColor // Light gray text
         )
     }
 }
@@ -114,15 +119,13 @@ fun QueueTreeCellPreview() {
             throw NotImplementedError()
         }
     }
-    AiContextTheme {
-        QueueTreeCell(
-            item = sampleItem,
-            project = sampleProject,
-            isSelected = false,
-            onRunClick = {},
-            onSaveClick = {},
-            onPromptChange = {},
-            onOutputDestChange = {}
-        )
-    }
+    QueueTreeCell(
+        item = sampleItem,
+        project = sampleProject,
+        isSelected = false,
+        onRunClick = {},
+        onSaveClick = {},
+        onPromptChange = {},
+        onOutputDestChange = {}
+    )
 }

@@ -1,4 +1,3 @@
-// File: src/main/kotlin/com/niloda/aicontext/intellij/ui/ScrollableGroups.kt
 package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.VerticalScrollbar
@@ -13,6 +12,7 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
@@ -20,22 +20,26 @@ import com.niloda.aicontext.model.QueueItem
 @Composable
 fun BoxScope.ScrollableGroups(
     groupedItems: Map<String, List<QueueItem>>,
+    headerBackground: Color,
+    textColor: Color,
     project: IProject
 ) {
     val scrollState = rememberScrollState()
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(8.dp),
+        modifier = Modifier.Companion.fillMaxSize().padding(8.dp),
         state = rememberLazyListState()
     ) {
         LazyGroupedItems(
             scope = this,
             groupedItems = groupedItems,
+            headerBackground = headerBackground,
+            textColor = textColor,
             project = project
         )
     }
 
     VerticalScrollbar(
-        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+        modifier = Modifier.Companion.align(Alignment.Companion.CenterEnd).fillMaxHeight(),
         adapter = rememberScrollbarAdapter(scrollState)
     )
 }
