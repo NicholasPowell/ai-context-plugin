@@ -2,14 +2,10 @@ package com.niloda.aicontext.model
 
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
-import com.niloda.aicontext.model.ProcessFile
-import com.niloda.aicontext.model.Terminate
-import com.niloda.aicontext.model.EnqueueFile
+import com.niloda.aicontext.intellij.uibridge.AiProcessorToolWindow
 import com.niloda.aicontext.ollama.AiSender
-import java.util.concurrent.ConcurrentLinkedQueue
 
 object IntelliJAiFileProcessor : AiFileProcessor {
-    override val queue = ConcurrentLinkedQueue<QueueItem>()
     private val activeTasks = mutableMapOf<IFile, Pair<Task.Backgroundable, ProgressIndicator>>()
     private val aiSender: AiSender = AiSender()
 
@@ -21,16 +17,16 @@ object IntelliJAiFileProcessor : AiFileProcessor {
     }
 
     fun enqueueFileWithGroup(file: IFile, groupName: String) {
-        val existingItem = queue.find { it.file == file }
+        val existingItem = AiProcessorToolWindow._queueFlow.value.find { it.file == file }
         if (existingItem != null) {
-            queue.remove(existingItem)
+            AiProcessorToolWindow._queueFlow.value -= existingItem
             if (existingItem.status == QueueItem.Status.RUNNING) {
                 terminate(file)
             }
         }
         val item = QueueItem(file, groupName = groupName)
-        queue.add(item)
-        println("Queued file: ${file.name} in group: $groupName, Queue size: ${queue.size}")
+        AiProcessorToolWindow._queueFlow.value += item
+        println("Queued file: ${file.name} in group: $groupName, Queue size: ${AiProcessorToolWindow._queueFlow.value.size}")
     }
 
     override fun processFile(item: QueueItem, project: IProject) {
@@ -41,10 +37,7 @@ object IntelliJAiFileProcessor : AiFileProcessor {
         Terminate(activeTasks, file)
     }
 
-    override fun getQueueStatus(): List<QueueItem> = queue.toList()
+    override fun getQueueStatus(): List<QueueItem> = AiProcessorToolWindow._queueFlow.value.toList()
 
-    fun moveItemToGroup(item: QueueItem, newGroupName: String) {
-        item.groupName = newGroupName
-        println("Moved ${item.file.name} to group: $newGroupName")
-    }
+
 }

@@ -12,10 +12,10 @@ object Terminate {
         println("Terminating task for ${file.name}")
         indicator.cancel()
         activeTasks.remove(file)
-        val item = IntelliJAiFileProcessor.queue.find { it.file == file }
-        if (item != null && item.status == QueueItem.Status.RUNNING) {
-            item.status = QueueItem.Status.CANCELLED
-            item.startTime = null
-        }
+//        val item = IntelliJAiFileProcessor.queue.find { it.file == file }
+//        if (item != null && item.status == QueueItem.Status.RUNNING) {
+//            item.status = QueueItem.Status.CANCELLED
+//            item.startTime = null
+//        }
     }
 }

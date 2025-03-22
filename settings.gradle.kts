@@ -1,3 +1,11 @@
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs2") {
+            from(files("gradle/libs.versions.toml"))
+        }
+    }
+}
+
 pluginManagement {
     repositories {
         mavenLocal()
@@ -5,5 +13,6 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 
 rootProject.name = "ai-context-plugin"
