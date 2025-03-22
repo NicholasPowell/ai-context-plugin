@@ -34,3 +34,5 @@ build/
 
 # Gradle internals
 .gradle/
+
+.intellijPlatform

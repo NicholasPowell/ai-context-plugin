@@ -54,6 +54,3 @@ object IntelliJAiFileProcessor : AiFileProcessor {
         println("Moved ${item.file.name} to group: $newGroupName")
     }
 }
-
-fun Project.adapt() = IntelliJProjectAdapter(this)
-fun PsiFile.adapt() = IntelliJFileAdapter(this)
