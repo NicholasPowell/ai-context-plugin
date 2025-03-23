@@ -7,14 +7,14 @@ import com.niloda.aicontext.model.QueueItem
 import com.niloda.aicontext.model.SendToAi
 
 @Composable
-fun QueueTreeCells(
+fun QueueRows(
     queueItems: List<QueueItem>,
     project: IProject,
     sendToAi: SendToAi
 ) {
     Column {
         queueItems.forEach { item ->
-            QueueTreeCell(
+            QueueItemRow(
                 item = item,
                 project = project,
                 isSelected = false,

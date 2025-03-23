@@ -27,7 +27,6 @@ class QueueFileAction : AnAction() {
         }
 
         Facade.fileProcessor.enqueueFileWithGroup(psiFile.adapt())
-        Messages.showInfoMessage(project, "Enqueued file: ${psiFile.name}", "AI Context")
     }
 
     override fun update(e: AnActionEvent) {

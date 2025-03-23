@@ -1,6 +1,7 @@
 package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,7 +33,7 @@ fun BoxScope.ScrollableGroups(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .background(MaterialTheme.colors.surface)
             .verticalScroll(scrollState)
     ) {
         GroupedItems(

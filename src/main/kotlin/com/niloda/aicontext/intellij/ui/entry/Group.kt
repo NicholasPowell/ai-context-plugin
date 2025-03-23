@@ -1,4 +1,4 @@
-package com.niloda.aicontext.intellij.ui
+package com.niloda.aicontext.intellij.ui.entry
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.niloda.aicontext.intellij.ui.QueueRows
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 import com.niloda.aicontext.model.SendToAi
@@ -22,7 +23,6 @@ fun Group(
     project: IProject,
     sendToAi: SendToAi
 ) {
-    println("Rendering group: $groupName with ${items.size} items") // Debug log
     Column {
         Row(
             modifier = Modifier
@@ -32,13 +32,12 @@ fun Group(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Group: $groupName (${items.size})",
-                style = MaterialTheme.typography.h6,
+                text = "$groupName (${items.size})",
+                style = MaterialTheme.typography.body2,
                 modifier = Modifier.weight(1f),
                 color = MaterialTheme.colors.onSurface // Use theme text color
             )
         }
-        println("Group $groupName expanded, rendering ${items.size} items") // Debug log
-        QueueTreeCells(queueItems = items, project = project, sendToAi = sendToAi)
+        QueueRows(queueItems = items, project = project, sendToAi = sendToAi)
     }
 }

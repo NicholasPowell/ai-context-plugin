@@ -1,4 +1,4 @@
-package com.niloda.aicontext.intellij.ui
+package com.niloda.aicontext.intellij.ui.entry
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -37,16 +36,16 @@ fun OutputDestination(
     outputDestState: MutableState<String>,
     onOutputDestChange: (String) -> Unit,
     onRunClick: () -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var isEditingOutputDest by editingOutputDestState
     var outputDest by outputDestState
     Box(
-        modifier = Modifier
-            .width(QueueUIConstants.OUTPUT_DEST_WIDTH.dp)
+        modifier = modifier
             .padding(end = QueueUIConstants.INSET.dp)
-            .border(if (isEditingOutputDest) 1.dp else 0.dp, MaterialTheme.colors.secondary) // Use theme border color
-            .background(if (isEditingOutputDest) MaterialTheme.colors.surface else MaterialTheme.colors.background) // Use theme colors
+            .border(if (isEditingOutputDest) 1.dp else 0.dp, MaterialTheme.colors.secondary)
+            .background(if (isEditingOutputDest) MaterialTheme.colors.surface else MaterialTheme.colors.background)
             .clickable { isEditingOutputDest = true }
     ) {
         if (isEditingOutputDest) {
@@ -60,28 +59,18 @@ fun OutputDestination(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp),
-                textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colors.onSurface) // Use theme text color
+                textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colors.onSurface)
             )
         } else {
             Text(
                 text = outputDest,
                 modifier = Modifier.padding(2.dp),
                 style = TextStyle(fontSize = 14.sp),
-                color = MaterialTheme.colors.onSurface, // Use theme text color
+                color = MaterialTheme.colors.onSurface,
                 maxLines = 1
             )
         }
     }
-
-    // Status (non-editable)
-    Text(
-        text = item.status.toString(),
-        modifier = Modifier
-            .width(QueueUIConstants.STATUS_WIDTH.dp)
-            .padding(end = QueueUIConstants.INSET.dp),
-        style = TextStyle(fontSize = 14.sp),
-        color = MaterialTheme.colors.onSurface // Use theme text color
-    )
 
     // Run Button
     if (item.status == QueueItem.Status.PENDING) {
@@ -94,7 +83,7 @@ fun OutputDestination(
             Icon(
                 Icons.Default.PlayArrow,
                 contentDescription = "Run this item",
-                tint = MaterialTheme.colors.onSurface // Use theme icon color
+                tint = MaterialTheme.colors.onSurface
             )
         }
     } else {
@@ -112,7 +101,7 @@ fun OutputDestination(
             Icon(
                 Icons.Default.KeyboardArrowDown,
                 contentDescription = "Save Result",
-                tint = MaterialTheme.colors.onSurface // Use theme icon color
+                tint = MaterialTheme.colors.onSurface
             )
         }
     }

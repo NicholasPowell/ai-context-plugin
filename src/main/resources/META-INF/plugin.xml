@@ -27,6 +27,7 @@
 
     <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="AI Context" anchor="bottom" factoryClass="com.niloda.aicontext.intellij.uibridge.AiProcessorWindowFactory"/>
+        <toolWindow id="AI Context" anchor="right"
+                    factoryClass="com.niloda.aicontext.intellij.uibridge.AiProcessorWindowFactory"/>
     </extensions>
 </idea-plugin>
