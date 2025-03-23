@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,19 +28,14 @@ fun Prompt(
     promptState: MutableState<String>,
     onPromptChange: (String) -> Unit
 ) {
-    // IntelliJ Darcula-inspired colors
-    val textColor = Color(0xFFA9B7C6) // Light gray text (Darcula)
-    val borderColor = Color(0xFF555555) // Darker gray border (Darcula)
-    val editingBackground = Color(0xFF3C3F41) // Slightly lighter gray for editing background
-
     var isEditingPrompt by editingPrompt
     var prompt by promptState
     Box(
         modifier = Modifier
             .width(QueueUIConstants.PROMPT_WIDTH.dp)
             .padding(end = QueueUIConstants.INSET.dp)
-            .border(if (isEditingPrompt) 1.dp else 0.dp, borderColor)
-            .background(if (isEditingPrompt) editingBackground else Color.Transparent)
+            .border(if (isEditingPrompt) 1.dp else 0.dp, MaterialTheme.colors.secondary) // Use theme border color
+            .background(if (isEditingPrompt) MaterialTheme.colors.surface else MaterialTheme.colors.background) // Use theme colors
             .clickable { isEditingPrompt = true }
     ) {
         if (isEditingPrompt) {
@@ -54,14 +49,14 @@ fun Prompt(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp),
-                textStyle = TextStyle(fontSize = 14.sp, color = textColor)
+                textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colors.onSurface) // Use theme text color
             )
         } else {
             Text(
                 text = prompt,
                 modifier = Modifier.padding(2.dp),
                 style = TextStyle(fontSize = 14.sp),
-                color = textColor,
+                color = MaterialTheme.colors.onSurface, // Use theme text color
                 maxLines = 1
             )
         }

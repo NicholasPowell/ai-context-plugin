@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -21,7 +22,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
@@ -39,20 +39,14 @@ fun OutputDestination(
     onRunClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
-    // IntelliJ Darcula-inspired colors
-    val textColor = Color(0xFFA9B7C6) // Light gray text (Darcula)
-    val borderColor = Color(0xFF555555) // Darker gray border (Darcula)
-    val iconColor = Color(0xFFA9B7C6) // Light gray for icons
-    val editingBackground = Color(0xFF3C3F41) // Slightly lighter gray for editing background
-
     var isEditingOutputDest by editingOutputDestState
     var outputDest by outputDestState
     Box(
         modifier = Modifier
             .width(QueueUIConstants.OUTPUT_DEST_WIDTH.dp)
             .padding(end = QueueUIConstants.INSET.dp)
-            .border(if (isEditingOutputDest) 1.dp else 0.dp, borderColor)
-            .background(if (isEditingOutputDest) editingBackground else Color.Transparent)
+            .border(if (isEditingOutputDest) 1.dp else 0.dp, MaterialTheme.colors.secondary) // Use theme border color
+            .background(if (isEditingOutputDest) MaterialTheme.colors.surface else MaterialTheme.colors.background) // Use theme colors
             .clickable { isEditingOutputDest = true }
     ) {
         if (isEditingOutputDest) {
@@ -66,14 +60,14 @@ fun OutputDestination(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(2.dp),
-                textStyle = TextStyle(fontSize = 14.sp, color = textColor)
+                textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colors.onSurface) // Use theme text color
             )
         } else {
             Text(
                 text = outputDest,
                 modifier = Modifier.padding(2.dp),
                 style = TextStyle(fontSize = 14.sp),
-                color = textColor,
+                color = MaterialTheme.colors.onSurface, // Use theme text color
                 maxLines = 1
             )
         }
@@ -86,20 +80,22 @@ fun OutputDestination(
             .width(QueueUIConstants.STATUS_WIDTH.dp)
             .padding(end = QueueUIConstants.INSET.dp),
         style = TextStyle(fontSize = 14.sp),
-        color = textColor
+        color = MaterialTheme.colors.onSurface // Use theme text color
     )
 
     // Run Button
     if (item.status == QueueItem.Status.PENDING) {
         IconButton(
-            onClick = {
-                onRunClick()
-            },
+            onClick = { onRunClick() },
             modifier = Modifier
                 .size(20.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = "Run this item", tint = iconColor)
+            Icon(
+                Icons.Default.PlayArrow,
+                contentDescription = "Run this item",
+                tint = MaterialTheme.colors.onSurface // Use theme icon color
+            )
         }
     } else {
         Spacer(modifier = Modifier.size(20.dp))
@@ -108,14 +104,16 @@ fun OutputDestination(
     // Save Button
     if (item.result != null && item.outputDestination.isNotBlank()) {
         IconButton(
-            onClick = {
-                onSaveClick()
-            },
+            onClick = { onSaveClick() },
             modifier = Modifier
                 .size(20.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
         ) {
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Save Result", tint = iconColor)
+            Icon(
+                Icons.Default.KeyboardArrowDown,
+                contentDescription = "Save Result",
+                tint = MaterialTheme.colors.onSurface // Use theme icon color
+            )
         }
     }
 }

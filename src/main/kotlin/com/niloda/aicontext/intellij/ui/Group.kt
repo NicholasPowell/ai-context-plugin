@@ -1,34 +1,31 @@
-// === File: src/main/kotlin/com/niloda/aicontext/intellij/Group.kt
 package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 
+@Composable
 fun Group(
-    scope: LazyListScope,
     groupName: String,
-    headerBackground: Color,
     items: List<QueueItem>,
-    textColor: Color,
     project: IProject
 ) {
     println("Rendering group: $groupName with ${items.size} items") // Debug log
-    scope.item(key = "header_$groupName") {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(headerBackground)
+                .background(MaterialTheme.colors.surface) // Use theme surface for header
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -36,10 +33,10 @@ fun Group(
                 text = "Group: $groupName (${items.size})",
                 style = MaterialTheme.typography.h6,
                 modifier = Modifier.weight(1f),
-                color = textColor
+                color = MaterialTheme.colors.onSurface // Use theme text color
             )
         }
         println("Group $groupName expanded, rendering ${items.size} items") // Debug log
-        QueueTreeCells(scope = scope, queueItems = items, project = project)
+        QueueTreeCells(queueItems = items, project = project)
     }
 }
