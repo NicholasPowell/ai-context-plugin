@@ -2,15 +2,15 @@ package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import com.niloda.aicontext.intellij.uibridge.AiProcessorToolWindow
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
-import com.niloda.aicontext.model.QueueManager
+import com.niloda.aicontext.model.SendToAi
 
 @Composable
 fun QueueTreeCells(
     queueItems: List<QueueItem>,
-    project: IProject
+    project: IProject,
+    sendToAi: SendToAi
 ) {
     Column {
         queueItems.forEach { item ->
@@ -18,8 +18,8 @@ fun QueueTreeCells(
                 item = item,
                 project = project,
                 isSelected = false,
-                onRunClick = { QueueManager.processFile(item, project) },
-                onSaveClick = { AiProcessorToolWindow.saveResult(item, project) },
+                onRunClick = { sendToAi.processFile(item, project) },
+                onSaveClick = {  },
                 onPromptChange = { /* Handled in QueueTreeCell */ },
                 onOutputDestChange = { /* Handled in QueueTreeCell */ }
             )

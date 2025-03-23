@@ -13,12 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
+import com.niloda.aicontext.model.SendToAi
 
 @Composable
 fun Group(
     groupName: String,
     items: List<QueueItem>,
-    project: IProject
+    project: IProject,
+    sendToAi: SendToAi
 ) {
     println("Rendering group: $groupName with ${items.size} items") // Debug log
     Column {
@@ -37,6 +39,6 @@ fun Group(
             )
         }
         println("Group $groupName expanded, rendering ${items.size} items") // Debug log
-        QueueTreeCells(queueItems = items, project = project)
+        QueueTreeCells(queueItems = items, project = project, sendToAi = sendToAi)
     }
 }

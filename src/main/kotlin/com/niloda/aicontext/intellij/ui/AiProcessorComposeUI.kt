@@ -9,12 +9,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
+import com.niloda.aicontext.model.SendToAi
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun AiProcessorComposeUI(
     queueState: StateFlow<List<QueueItem>>,
-    project: IProject
+    project: IProject,
+    sendToAi: SendToAi
 ) {
     DarculaTheme { // Wrap with the custom theme
         val queueItems = queueState.collectAsState().value
@@ -28,7 +30,7 @@ fun AiProcessorComposeUI(
             if (queueItems.isEmpty())
                 NoItemsInQueue()
             else
-                ScrollableGroups(queueState, project)
+                ScrollableGroups(queueState, project, sendToAi)
         }
     }
 }

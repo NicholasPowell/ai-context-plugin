@@ -18,12 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
+import com.niloda.aicontext.model.SendToAi
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun BoxScope.ScrollableGroups(
     queueState: StateFlow<List<QueueItem>>,
-    project: IProject
+    project: IProject,
+    sendToAi: SendToAi
 ) {
     val groupedItems = queueState.collectAsState().value.groupBy { it.groupName }
     val scrollState = rememberScrollState()
@@ -33,13 +35,10 @@ fun BoxScope.ScrollableGroups(
             .padding(8.dp)
             .verticalScroll(scrollState)
     ) {
-        Text(
-            text = groupedItems.toString(),
-            color = MaterialTheme.colors.onBackground // Use theme text color
-        )
         GroupedItems(
             groupedItems = groupedItems,
-            project = project
+            project = project,
+            sendToAi = sendToAi
         )
     }
 

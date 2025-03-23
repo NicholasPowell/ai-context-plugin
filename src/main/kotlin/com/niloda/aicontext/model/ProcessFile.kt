@@ -6,7 +6,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.util.ui.UIUtil
 import com.niloda.aicontext.intellij.adapt.IntelliJProjectAdapter
-import com.niloda.aicontext.intellij.uibridge.AiProcessorToolWindow
+import com.niloda.aicontext.intellij.uibridge.Facade
 
 object ProcessFile {
     operator fun invoke(
@@ -29,7 +29,7 @@ object ProcessFile {
                 }
 
                 val prompt = item.prompt + (item.file.text ?: "")
-                val response = if (!indicator.isCanceled) IntelliJAiFileProcessor.sendToAi(prompt, project) else null
+                val response = if (!indicator.isCanceled) Facade.fileProcessor.sendToAi(prompt, project) else null
                 if (indicator.isCanceled) {
                     println("Task for ${item.file.name} cancelled during execution")
                     handleCancellation(item, project)
@@ -48,7 +48,7 @@ object ProcessFile {
                 )
 
                 UIUtil.invokeLaterIfNeeded {
-                    AiProcessorToolWindow.setResult(item, response)
+                    Facade.toolWindow.setResult(item, response)
                 }
             }
 

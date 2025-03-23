@@ -1,50 +1,11 @@
 package com.niloda.aicontext.intellij.uibridge
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Text
 import com.intellij.openapi.project.Project
-import com.niloda.aicontext.intellij.adapt.adapt
-import com.niloda.aicontext.intellij.ui.AiProcessorComposeUI
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import org.jetbrains.jewel.bridge.JewelComposePanel
-import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import java.io.File
-import javax.swing.JComponent
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 
-object AiProcessorToolWindow {
-    private lateinit var project: Project
-
-    val _queueFlow = MutableStateFlow<List<QueueItem>>(listOf())
-    val queueFlow: StateFlow<List<QueueItem>> = _queueFlow
-
-    @OptIn(ExperimentalJewelApi::class)
-    fun createComposePanel(proj: Project): JComponent {
-
-        project = proj
-        enableNewSwingCompositing()
-        return JewelComposePanel({}) {
-            SwingBridgeTheme {
-                Column {
-                    Text(
-                        text = "Hello, World",
-                        modifier = Modifier.background(Color.Red)
-                    )
-                    AiProcessorComposeUI(
-                        queueFlow,
-                        project.adapt()
-                    )
-                }
-            }
-        }
-    }
+class AiProcessorToolWindow(val project: Project) {
 
     fun setResult(item: QueueItem, result: String?) {
         item.result = result ?: "Error: Failed to process file"

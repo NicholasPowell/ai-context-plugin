@@ -1,5 +1,6 @@
 package com.niloda.aicontext
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -7,29 +8,24 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.niloda.aicontext.intellij.adapt.adapt
-import com.niloda.aicontext.model.IntelliJAiFileProcessor
+import com.niloda.aicontext.intellij.uibridge.Facade
 
 class EnqueueProjectItemAction : AnAction() {
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT // Run update on background thread
+    }
+
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val psiElement = e.getData(CommonDataKeys.PSI_ELEMENT) ?: run {
             Messages.showErrorDialog(project, "No item selected to enqueue!", "AI Context")
             return
         }
-
-        val groupName = Messages.showInputDialog(
-            project,
-            "Enter group name for this item(s):",
-            "Group Name",
-            Messages.getQuestionIcon(),
-            "Default",
-            null
-        ) ?: return // Cancelled dialog returns null
-
         when (psiElement) {
             is PsiFile -> {
-                IntelliJAiFileProcessor.enqueueFileWithGroup(psiElement.adapt(), groupName)
-                Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name} in group: $groupName", "AI Context")
+                Facade.fileProcessor.enqueueFileWithGroup(psiElement.adapt())
+                Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name}", "AI Context")
             }
             is PsiDirectory -> {
                 val files = psiElement.files.filter { it.isPhysical && !it.isDirectory }
@@ -38,9 +34,9 @@ class EnqueueProjectItemAction : AnAction() {
                     return
                 }
                 files.forEach { file ->
-                    IntelliJAiFileProcessor.enqueueFileWithGroup(file.adapt(), groupName)
+                    Facade.fileProcessor.enqueueFileWithGroup(file.adapt())
                 }
-                Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name} in group: $groupName", "AI Context")
+                Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name}", "AI Context")
             }
             else -> {
                 Messages.showErrorDialog(project, "Selected item is not a file or directory!", "AI Context")
