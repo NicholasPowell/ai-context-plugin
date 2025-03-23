@@ -5,7 +5,7 @@ import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 import java.io.File
 
-class AiProcessorToolWindow(val project: Project) {
+class ResultPersister(val project: Project) {
 
     fun setResult(item: QueueItem, result: String?) {
         item.result = result ?: "Error: Failed to process file"
