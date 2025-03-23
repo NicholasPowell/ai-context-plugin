@@ -36,6 +36,5 @@ class IntelliJAiFileProcessor() : AiFileProcessor {
         Terminate(activeTasks, file)
     }
 
-    override fun getQueueStatus(): List<QueueItem> = Facade.dataStore.queueStatus
 
 }

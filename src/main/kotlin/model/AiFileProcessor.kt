@@ -6,7 +6,6 @@ interface AiFileProcessor {
     fun enqueueFile(file: IFile)
     fun processFile(item: QueueItem, project: IProject)
     fun terminate(file: IFile)
-    fun getQueueStatus(): List<QueueItem>
 }
 
 interface IProject {

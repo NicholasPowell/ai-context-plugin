@@ -20,8 +20,6 @@ fun AiProcessorComposeUI(
 ) {
     DarculaTheme { // Wrap with the custom theme
         val queueItems = queueState.collectAsState().value
-        println("Queue items updated: ${queueItems.size}")
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
