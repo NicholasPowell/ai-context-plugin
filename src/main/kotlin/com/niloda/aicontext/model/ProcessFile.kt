@@ -17,8 +17,6 @@ object ProcessFile {
         if (item.status != QueueItem.Status.PENDING) return
         item.status = QueueItem.Status.RUNNING
         item.startTime = System.currentTimeMillis()
-        println("Processing file: ${item.file.name}")
-
         val task = object :
             Task.Backgroundable((project as IntelliJProjectAdapter).project, "Processing ${item.file.name}", true) {
             override fun run(indicator: ProgressIndicator) {
@@ -28,8 +26,8 @@ object ProcessFile {
                     return
                 }
 
-                val prompt = item.prompt + (item.file.text ?: "")
-                val response = if (!indicator.isCanceled) Facade.fileProcessor.sendToAi(prompt, project) else null
+
+                val response = if (!indicator.isCanceled) Facade.sendToAi(item, project) else null
                 if (indicator.isCanceled) {
                     println("Task for ${item.file.name} cancelled during execution")
                     handleCancellation(item, project)

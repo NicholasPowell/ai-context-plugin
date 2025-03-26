@@ -1,21 +1,28 @@
 package com.niloda.aicontext.intellij.ui
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.niloda.aicontext.QueueUIConstants
+import com.niloda.aicontext.QueueUIConstants.FILE_PATH_WIDTH
+import com.niloda.aicontext.QueueUIConstants.INSET
+import com.niloda.aicontext.QueueUIConstants.STATUS_WIDTH
+import com.niloda.aicontext.QueueUIConstants.TIME_WIDTH
 import com.niloda.aicontext.intellij.ui.entry.OutputDestination
 import com.niloda.aicontext.intellij.ui.entry.Prompt
 import com.niloda.aicontext.model.IFile
@@ -34,11 +41,11 @@ val jetbrainsMono = FontFamily(
     )
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueItemRow(
     item: QueueItem,
     project: IProject,
-    isSelected: Boolean,
     onRunClick: () -> Unit,
     onSaveClick: () -> Unit,
     onPromptChange: (String) -> Unit,
@@ -72,58 +79,79 @@ fun QueueItemRow(
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(QueueUIConstants.INSET.dp))
+        Spacer(modifier = Modifier.width(INSET.dp))
         Column(
             modifier = Modifier
-                .width(QueueUIConstants.FILE_PATH_WIDTH.dp)
-                .padding(end = QueueUIConstants.INSET.dp)
+                .width(width = FILE_PATH_WIDTH.dp)
+                .padding(end = INSET.dp)
         ) {
             Row {
-                Text(
-                    text = item.getDisplayPath(project),
-                    color = MaterialTheme.colors.onBackground,
-                    style = MaterialTheme.typography.body1,
-                    maxLines = 1,
-                    fontFamily = jetbrainsMono
-                )
-                Spacer(modifier = Modifier.width(QueueUIConstants.INSET.dp))
-                Text(
-                    fontFamily = jetbrainsMono,
-                    text = item.status.toString(),
-                    modifier = Modifier
-                        .width(QueueUIConstants.STATUS_WIDTH.dp)
-                        .padding(end = QueueUIConstants.INSET.dp),
-                    style = MaterialTheme.typography.body1,
-                    color = MaterialTheme.colors.onSurface
-                )
-                Text(
-                    fontFamily = jetbrainsMono,
-                    text = elapsedTime,
-                    modifier = Modifier
-                        .width(QueueUIConstants.TIME_WIDTH.dp)
-                        .padding(end = QueueUIConstants.INSET.dp),
-                    style = MaterialTheme.typography.body1,
-                    color = MaterialTheme.colors.onBackground
-                )
+                TooltipArea(
+                    tooltip = {
+                        // Tooltip content
+                        Surface(
+                            modifier = Modifier.padding(4.dp),
+                            shape = RoundedCornerShape(4.dp),
+                            color = Color(255, 255, 210), // Light yellow background
+                            elevation = 4.dp
+                        ) {
+                            Text(
+                                text = item.getDisplayPath(project),
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    },
+                    modifier = Modifier.padding(16.dp),
+                    delayMillis = 500
+                ) {
+                    Row {
+                        Text(
+                            text = item.file.name,//item.getDisplayPath(project),
+                            color = MaterialTheme.colors.onBackground,
+                            style = MaterialTheme.typography.body1,
+                            maxLines = 1,
+                            fontFamily = jetbrainsMono
+                        )
+                        Spacer(modifier = Modifier.width(INSET.dp))
+                        Text(
+                            text = item.status.toString(),
+                            fontFamily = jetbrainsMono,
+                            modifier = Modifier
+                                .width(width = STATUS_WIDTH.dp)
+                                .padding(end = INSET.dp),
+                            style = MaterialTheme.typography.body1,
+                            color = MaterialTheme.colors.onSurface
+                        )
+                        Text(
+                            fontFamily = jetbrainsMono,
+                            text = elapsedTime,
+                            modifier = Modifier
+                                .width(width = TIME_WIDTH.dp)
+                                .padding(end = INSET.dp),
+                            style = MaterialTheme.typography.body1,
+                            color = MaterialTheme.colors.onBackground
+                        )
+                    }
+                }
             }
-            Row {
-                Prompt(
-                    item = item,
-                    editingPrompt = editingPrompt,
-                    promptState = promptState,
-                    onPromptChange = onPromptChange,
-                    modifier = Modifier.width((QueueUIConstants.PROMPT_WIDTH / 2).dp)
-                )
-                OutputDestination(
-                    item = item,
-                    editingOutputDestState = editingOutputDestState,
-                    outputDestState = outputDestState,
-                    onOutputDestChange = onOutputDestChange,
-                    onRunClick = onRunClick,
-                    onSaveClick = onSaveClick,
-                    modifier = Modifier.width((QueueUIConstants.OUTPUT_DEST_WIDTH / 2).dp)
-                )
-            }
+//            Row {
+//                Prompt(
+//                    item = item,
+//                    editingPrompt = editingPrompt,
+//                    promptState = promptState,
+//                    onPromptChange = onPromptChange,
+//                    modifier = Modifier.width((QueueUIConstants.PROMPT_WIDTH / 2).dp)
+//                )
+//                OutputDestination(
+//                    item = item,
+//                    editingOutputDestState = editingOutputDestState,
+//                    outputDestState = outputDestState,
+//                    onOutputDestChange = onOutputDestChange,
+//                    onRunClick = onRunClick,
+//                    onSaveClick = onSaveClick,
+//                    modifier = Modifier.width((QueueUIConstants.OUTPUT_DEST_WIDTH / 2).dp)
+//                )
+//            }
 
         }
     }
@@ -153,7 +181,6 @@ fun QueueTreeCellPreview() {
         QueueItemRow(
             item = sampleItem,
             project = sampleProject,
-            isSelected = false,
             onRunClick = {},
             onSaveClick = {},
             onPromptChange = {},

@@ -13,8 +13,13 @@ class DataStore {
     fun remove(existingItem: QueueItem) {
         _queueFlow.value -= existingItem
     }
+
     fun add(item: QueueItem) {
-        _queueFlow.value += item
+        _queueFlow.value =  _queueFlow.value
+                .firstOrNull { it.file.virtualFilePath == item.file.virtualFilePath }
+                ?.let { _queueFlow.value - it + item }
+                ?:( _queueFlow.value + item)
     }
-    val size get () = _queueFlow.value.size
+
+    val size get() = _queueFlow.value.size
 }

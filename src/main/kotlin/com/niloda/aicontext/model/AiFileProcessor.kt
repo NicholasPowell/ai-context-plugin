@@ -1,9 +1,6 @@
 package com.niloda.aicontext.model
 
 interface AiFileProcessor {
-
-    fun sendToAi(prompt: String, project: IProject): String?
-    fun enqueueFile(file: IFile)
     fun processFile(item: QueueItem, project: IProject)
     fun terminate(file: IFile)
 }

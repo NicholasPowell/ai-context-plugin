@@ -11,13 +11,13 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-class AiSender {
+class SendToOllama {
     private val client = OkHttpClient.Builder()
         .connectTimeout(1800, TimeUnit.SECONDS)
         .readTimeout(1800, TimeUnit.SECONDS)
         .build()
 
-    fun sendToAi(prompt: String, project: IProject): String? =
+    operator fun invoke(prompt: String, project: IProject): String? =
         try {
 
             println("Sending to AI $prompt")

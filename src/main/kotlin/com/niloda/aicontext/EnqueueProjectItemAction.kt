@@ -24,7 +24,7 @@ class EnqueueProjectItemAction : AnAction() {
         }
         when (psiElement) {
             is PsiFile -> {
-                Facade.fileProcessor.enqueueFileWithGroup(psiElement.adapt())
+                Facade.enqueueFile(psiElement.adapt())
                 Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name}", "AI Context")
             }
             is PsiDirectory -> {
@@ -34,7 +34,7 @@ class EnqueueProjectItemAction : AnAction() {
                     return
                 }
                 files.forEach { file ->
-                    Facade.fileProcessor.enqueueFileWithGroup(file.adapt())
+                    Facade.enqueueFile(file.adapt())
                 }
                 Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name}", "AI Context")
             }

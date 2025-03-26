@@ -26,7 +26,7 @@ class QueueFileAction : AnAction() {
             return
         }
 
-        Facade.fileProcessor.enqueueFileWithGroup(psiFile.adapt())
+        Facade.enqueueFile(psiFile.adapt())
     }
 
     override fun update(e: AnActionEvent) {

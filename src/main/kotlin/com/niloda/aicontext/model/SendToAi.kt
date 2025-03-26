@@ -1,14 +1,13 @@
 package com.niloda.aicontext.model
 
-class SendToAi(
-    private val aiService: IntelliJAiFileProcessor
-) {
+import com.niloda.aicontext.ollama.SendToOllama
 
-    fun processFile(item: QueueItem, project: IProject) {
-        aiService.processFile(item, project)
-    }
+class SendToAi(private val sendToOllama: SendToOllama = SendToOllama()) {
 
-    fun terminate(file: IFile) {
-        aiService.terminate(file)
-    }
+    operator fun invoke(item: QueueItem, project: IProject): String? =
+        sendToOllama(
+            item.prompt + (item.file.text ?: ""),
+            project
+        )
+
 }
