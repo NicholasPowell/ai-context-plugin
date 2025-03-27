@@ -26,7 +26,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.niloda.aicontext.QueueUIConstants
 import com.niloda.aicontext.model.QueueItem
 
 @Composable
@@ -43,7 +42,6 @@ fun OutputDestination(
     var outputDest by outputDestState
     Box(
         modifier = modifier
-            .padding(end = QueueUIConstants.INSET.dp)
             .border(if (isEditingOutputDest) 1.dp else 0.dp, MaterialTheme.colors.secondary)
             .background(if (isEditingOutputDest) MaterialTheme.colors.surface else MaterialTheme.colors.background)
             .clickable { isEditingOutputDest = true }

@@ -13,6 +13,6 @@ fun BoxScope.NoItemsInQueue() {
         text = "No items in queue. Enqueue files to see them here.",
         modifier = Modifier.align(Alignment.Center),
         style = MaterialTheme.typography.body1,
-        color = MaterialTheme.colors.onBackground // Use theme text color
+        color = MaterialTheme.colors.onBackground
     )
 }

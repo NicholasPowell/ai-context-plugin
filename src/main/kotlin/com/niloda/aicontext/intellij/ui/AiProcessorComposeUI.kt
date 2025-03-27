@@ -7,6 +7,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import com.niloda.aicontext.intellij.ui.theme.DarculaTheme
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 import com.niloda.aicontext.model.SendToAi

@@ -17,8 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.niloda.aicontext.QueueUIConstants
-import com.niloda.aicontext.intellij.ui.jetbrainsMono
+import com.niloda.aicontext.intellij.ui.theme.jetbrainsMono
 import com.niloda.aicontext.model.QueueItem
 
 @Composable
@@ -33,7 +32,6 @@ fun Prompt(
     var prompt by promptState
     Box(
         modifier = modifier
-            .padding(end = QueueUIConstants.INSET.dp)
             .border(if (isEditingPrompt) 1.dp else 0.dp, MaterialTheme.colors.secondary)
             .background(if (isEditingPrompt) MaterialTheme.colors.surface else MaterialTheme.colors.background)
             .clickable { isEditingPrompt = true }
