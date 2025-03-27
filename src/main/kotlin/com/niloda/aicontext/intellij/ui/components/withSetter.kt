@@ -1,3 +1,4 @@
 package com.niloda.aicontext.intellij.ui.components
 
-infix fun <T, R> T.withSetter(that: R) = this to that
+// Generic way to use a var boolean without mutableState
+infix fun <R: (Boolean) -> Unit> Boolean.withSetter(that: R) = this to that

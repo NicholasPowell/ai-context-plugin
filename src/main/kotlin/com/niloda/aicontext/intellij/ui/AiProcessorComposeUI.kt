@@ -8,16 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.niloda.aicontext.intellij.ui.theme.DarculaTheme
+import com.niloda.aicontext.model.AiSender
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
-import com.niloda.aicontext.model.SendToAi
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun AiProcessorComposeUI(
     queueState: StateFlow<List<QueueItem>>,
     project: IProject,
-    sendToAi: SendToAi
+    sendToAi: AiSender
 ) {
     DarculaTheme { // Wrap with the custom theme
         val queueItems = queueState.collectAsState().value
