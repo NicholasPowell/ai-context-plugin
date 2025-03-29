@@ -16,7 +16,7 @@ import com.niloda.aicontext.intellij.ui.components.Col
 import com.niloda.aicontext.intellij.ui.components.R
 import com.niloda.aicontext.intellij.ui.components.ToggleIcon
 import com.niloda.aicontext.intellij.ui.components.withSetter
-import com.niloda.aicontext.model.AiSender
+import com.niloda.aicontext.model.SendToAi
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 
@@ -25,7 +25,7 @@ fun Group(
     groupName: String,
     items: List<QueueItem>,
     project: IProject,
-    sendToAi: AiSender
+    sendToAi: SendToAi
 ) {
     val expandState = remember { mutableStateOf(true) }
     var isExpanded by expandState

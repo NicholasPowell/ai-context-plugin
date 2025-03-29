@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.intellij.ui.components.Col
 import com.niloda.aicontext.intellij.ui.components.R
 import com.niloda.aicontext.intellij.ui.entry.Group
-import com.niloda.aicontext.model.AiSender
+import com.niloda.aicontext.model.SendToAi
 import com.niloda.aicontext.model.IProject
 import com.niloda.aicontext.model.QueueItem
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +27,7 @@ import org.jetbrains.jewel.ui.component.HorizontalScrollbar
 fun BoxScope.ScrollableGroups(
     queueState: StateFlow<List<QueueItem>>,
     project: IProject,
-    sendToAi: AiSender
+    sendToAi: SendToAi
 ) {
     val groupedItems = queueState.collectAsState().value.groupBy { it.groupName }
     val scrollState = rememberScrollState()
