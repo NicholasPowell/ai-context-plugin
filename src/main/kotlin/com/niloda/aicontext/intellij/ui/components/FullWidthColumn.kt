@@ -44,6 +44,17 @@ object R {
     inline fun Wide(
         modifier: Modifier = Modifier,
         content: @Composable ()->Unit) = FullWidthRow(modifier) { content() }
+
+    @Composable
+    inline operator fun invoke(
+        modifier: Modifier = Modifier,
+        valign: Alignment.Vertical = Alignment.Top,
+        content: @Composable ()
+    ->Unit) =
+        Row(
+            modifier = modifier.debugBorder(),
+            verticalAlignment = valign
+        ) { content() }
 }
 
 object Col {

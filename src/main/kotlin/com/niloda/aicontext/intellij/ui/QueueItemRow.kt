@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.intellij.ui.BuildConfig.debugBorder
+import com.niloda.aicontext.intellij.ui.components.Col
+import com.niloda.aicontext.intellij.ui.components.R
+import com.niloda.aicontext.intellij.ui.entry.Body2
 import com.niloda.aicontext.intellij.ui.theme.DarculaTheme
 import com.niloda.aicontext.intellij.ui.theme.jetbrainsMono
 import com.niloda.aicontext.model.IFile
@@ -41,7 +44,7 @@ fun FileRow(
     // Local state to hold the displayed elapsed time
     var elapsedTime by remember { mutableStateOf(item.getElapsedTime()) }
 
-    // Update elapsed time for running tasks
+    // TODO, offload this
     LaunchedEffect(item.status) {
         if (item.status == QueueItem.Status.RUNNING) {
             while (true) {
@@ -54,21 +57,8 @@ fun FileRow(
         }
     }
 
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .debugBorder()
-            .background(MaterialTheme.colors.surface)
-            .padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-//                .padding(end = 8.dp)
-                .debugBorder()
-        ) {
+    R(valign = Alignment.CenterVertically) {
+        Col.Wide {
             Row(modifier = Modifier.fillMaxWidth().debugBorder().testTag("cool")) {
                 @Composable {
                     Surface(
@@ -84,27 +74,9 @@ fun FileRow(
                     }
                 } tooltipFor {
                     Row(Modifier.debugBorder()) {
-                        Text(
-                            text = item.file.name,
-                            color = MaterialTheme.colors.onBackground,
-                            style = MaterialTheme.typography.body2,
-                            maxLines = 1,
-                            fontFamily = jetbrainsMono
-                        )
-                        Text(
-                            text = item.status.toString(),
-                            fontFamily = jetbrainsMono,
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.onSurface
-                        )
-                        Text(
-                            fontFamily = jetbrainsMono,
-                            text = elapsedTime,
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.onBackground
-                        )
+                        Body2(item.file.name)
+                        Body2(item.status.toString())
+                        Body2(elapsedTime)
                     }
                 }
             }

@@ -21,3 +21,18 @@ fun Body1(
         color = color
     )
 }
+
+@Composable
+fun Body2(
+    text: String,
+    modifier: Modifier = Modifier.Companion,
+    color: Color = MaterialTheme.colors.onSurface
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.body2,
+        modifier = Modifier.Companion.fillMaxWidth().debugBorder().then(modifier),
+        color = color
+    )
+}
+

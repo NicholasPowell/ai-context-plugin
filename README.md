@@ -5,8 +5,11 @@ The **AI-Context Plugin** is an IntelliJ IDEA plugin designed to integrate AI-dr
 
 ## Methodology
 
-Project goal is to work with Grok to handle 95% of the Swing/plugin patterns, keeping as much of the boilerplate and UI nuance out of my head as possible. 
-I'm probably learning more about both than intended, but mostly things to avoid and to ask Grok to refactor
+Initially started as a vibe code experiment to see if Grok could handle developing a functional Swing 
+interface for the plugin. 
+While initially promising, the problems with the vibe code increased with every iteration, until the
+whole thing was unsupportable. 
+Pivoted to having Grok help bridge to a Jetpack Compose solution, and dropped to less than 10% input from AI for follow up iterations.
 
 ## Features
 
