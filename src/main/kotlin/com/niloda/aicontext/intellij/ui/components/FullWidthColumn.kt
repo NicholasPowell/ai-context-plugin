@@ -39,7 +39,7 @@ inline fun FullWidthRow(modifier: Modifier = Modifier, content: @Composable ()->
         content()
     }
 }
-object R {
+object Row {
     @Composable
     inline fun Wide(
         modifier: Modifier = Modifier,
@@ -55,6 +55,17 @@ object R {
             modifier = modifier.debugBorder(),
             verticalAlignment = valign
         ) { content() }
+
+    @Composable
+    inline fun VerticalCenter(
+        modifier: Modifier = Modifier,
+        content: @Composable ()->Unit) =
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            content() }
+
 }
 
 object Col {

@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.intellij.ui.FileRow
 import com.niloda.aicontext.intellij.ui.components.Col
-import com.niloda.aicontext.intellij.ui.components.R
+import com.niloda.aicontext.intellij.ui.components.Row
 import com.niloda.aicontext.intellij.ui.components.ToggleIcon
 import com.niloda.aicontext.intellij.ui.components.withSetter
 import com.niloda.aicontext.model.SendToAi
@@ -30,7 +30,7 @@ fun Group(
     val expandState = remember { mutableStateOf(true) }
     var isExpanded by expandState
     Col.Wide {
-        R.Wide {
+        Row.Wide {
             ToggleIcon(
                 state = isExpanded withSetter { isExpanded = it },
                 onOff = Default.KeyboardArrowDown to Default.KeyboardArrowRight

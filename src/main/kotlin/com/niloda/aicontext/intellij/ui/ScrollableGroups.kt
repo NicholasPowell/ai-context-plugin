@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.intellij.ui.components.Col
-import com.niloda.aicontext.intellij.ui.components.R
+import com.niloda.aicontext.intellij.ui.components.Row
 import com.niloda.aicontext.intellij.ui.entry.Group
 import com.niloda.aicontext.model.SendToAi
 import com.niloda.aicontext.model.IProject
@@ -34,7 +34,7 @@ fun BoxScope.ScrollableGroups(
     val scrollStateH = rememberScrollState()
 
     Col.Wide(modifier = Modifier.verticalScroll(scrollState)) {
-        R.Wide(Modifier.horizontalScroll(scrollStateH)) {
+        Row.Wide(Modifier.horizontalScroll(scrollStateH)) {
             Col.Wide {
                 groupedItems.forEach { (groupName, items) ->
                     Group(

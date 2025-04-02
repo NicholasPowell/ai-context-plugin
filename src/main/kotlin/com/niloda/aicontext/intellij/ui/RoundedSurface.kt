@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.niloda.aicontext.intellij.ui.BuildConfig.debugBorder
 
 @Composable
-fun TooltipSurface(content: @Composable ()-> Unit) {
+fun RoundedSurface(content: @Composable ()-> Unit) {
     Surface(
         modifier = Modifier.Companion.debugBorder(),
         shape = RoundedCornerShape(4.dp),
