@@ -29,7 +29,6 @@ fun Group(
 ) {
     val expandState = remember { mutableStateOf(true) }
     var isExpanded by expandState
-
     Col.Wide {
         R.Wide {
             ToggleIcon(

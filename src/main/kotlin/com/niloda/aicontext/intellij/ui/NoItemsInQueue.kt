@@ -6,13 +6,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.niloda.aicontext.intellij.ui.entry.Body1
 
 @Composable
 fun BoxScope.NoItemsInQueue() {
-    Text(
-        text = "No items in queue. Enqueue files to see them here.",
-        modifier = Modifier.align(Alignment.Center),
-        style = MaterialTheme.typography.body1,
-        color = MaterialTheme.colors.onBackground
-    )
+    Body1(text = "No items in queue. Enqueue files to see them here.", modifier = Modifier.align(Alignment.Center))
 }

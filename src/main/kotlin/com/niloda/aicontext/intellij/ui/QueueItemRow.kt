@@ -54,14 +54,14 @@ fun FileRow(
                 if (item.status != QueueItem.Status.RUNNING) break
             }
         } else {
-            elapsedTime = item.getElapsedTime() // Ensure final state when not running
+            elapsedTime = item.getElapsedTime()
         }
     }
 
     R(valign = Alignment.CenterVertically) {
         Col.Wide {
             R.Wide {
-                TT(tooltip = {
+                TT({
                     TooltipSurface {
                         Body2(item.getDisplayPath(project))
                     }
