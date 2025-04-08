@@ -13,9 +13,7 @@ import com.niloda.aicontext.intellij.uibridge.Facade.Companion.facade
 
 class EnqueueProjectItemAction : AnAction() {
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.BGT // Run update on background thread
-    }
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return

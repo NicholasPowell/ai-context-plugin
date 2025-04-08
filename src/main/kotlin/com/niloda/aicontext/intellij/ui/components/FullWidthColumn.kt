@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.niloda.aicontext.intellij.ui.BuildConfig.debugBorder
 
 @Composable
@@ -42,8 +43,9 @@ inline fun FullWidthRow(modifier: Modifier = Modifier, content: @Composable ()->
 object Row {
     @Composable
     inline fun Wide(
+        tag: String = "",
         modifier: Modifier = Modifier,
-        content: @Composable ()->Unit) = FullWidthRow(modifier) { content() }
+        content: @Composable ()->Unit) = FullWidthRow(modifier.testTag(tag)) { content() }
 
     @Composable
     inline operator fun invoke(

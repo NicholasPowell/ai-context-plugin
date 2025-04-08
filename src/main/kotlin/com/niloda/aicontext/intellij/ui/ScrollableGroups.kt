@@ -34,7 +34,7 @@ fun BoxScope.ScrollableGroups(
     val scrollStateH = rememberScrollState()
 
     Col.Wide(modifier = Modifier.verticalScroll(scrollState)) {
-        Row.Wide(Modifier.horizontalScroll(scrollStateH)) {
+        Row.Wide(modifier=Modifier.horizontalScroll(scrollStateH)) {
             Col.Wide {
                 groupedItems.forEach { (groupName, items) ->
                     Group(

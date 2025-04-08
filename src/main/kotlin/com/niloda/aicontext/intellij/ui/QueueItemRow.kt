@@ -32,20 +32,9 @@ fun FileRow(
     var editingOutputDestState: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     // Local state to hold the displayed elapsed time
-    var elapsedTime by remember { mutableStateOf(item.getElapsedTime()) }
+    val (elapsedTime, setElapsedTime) = remember { mutableStateOf(item.getElapsedTime()) }
 
-    // TODO, offload this
-    LaunchedEffect(item.status) {
-        if (item.status == QueueItem.Status.RUNNING) {
-            while (true) {
-                elapsedTime = item.getElapsedTime()
-                delay(1000) // Update every second
-                if (item.status != QueueItem.Status.RUNNING) break
-            }
-        } else {
-            elapsedTime = item.getElapsedTime()
-        }
-    }
+    LaunchTimer(item, setElapsedTime)
 
     Row.VerticalCenter {
         Col.Wide {
@@ -62,6 +51,21 @@ fun FileRow(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun LaunchTimer(item: QueueItem, setElapsedTime: (String)->Unit) {
+    LaunchedEffect(item.status) {
+        if (item.status == QueueItem.Status.RUNNING) {
+            while (true) {
+                setElapsedTime(item.getElapsedTime())
+                delay(1000) // Update every second
+                if (item.status != QueueItem.Status.RUNNING) break
+            }
+        } else {
+            setElapsedTime(item.getElapsedTime())
         }
     }
 }
