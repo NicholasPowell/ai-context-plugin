@@ -29,8 +29,8 @@ fun Group(
 ) {
     val expandState = remember { mutableStateOf(true) }
     var isExpanded by expandState
-    Col.Wide {
-        Row.Wide {
+    Col.Max {
+        Row.Max {
             ToggleIcon(
                 state = isExpanded withSetter { isExpanded = it },
                 onOff = Default.KeyboardArrowDown to Default.KeyboardArrowRight

@@ -6,18 +6,19 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.intellij.ui.dsl.builder.Align
 import com.niloda.aicontext.intellij.ui.components.Box
 import com.niloda.aicontext.intellij.ui.components.Col
 import com.niloda.aicontext.intellij.ui.components.Row
 import org.jetbrains.jewel.ui.component.HorizontalScrollbar
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
+/**
+ * Combines Vertical and Horizontal scroll components
+ */
 @Composable
 fun BoxScroll(
     contents: @Composable ()->Unit
@@ -27,9 +28,9 @@ fun BoxScroll(
     val scrollbarStyle = LocalScrollbarStyle.current
 
     Box.Max {
-        Col.Wide(modifier = Modifier.verticalScroll(scrollState).align(Alignment.TopEnd)) {
-            Row.Wide(modifier = Modifier.horizontalScroll(scrollStateH)) {
-                Col.Wide {
+        Col.Max("", Modifier.verticalScroll(scrollState).align(Alignment.TopEnd)) {
+            Row.Max("",Modifier.horizontalScroll(scrollStateH)) {
+                Col.Max {
                     contents()
                 }
             }
@@ -40,7 +41,8 @@ fun BoxScroll(
                 Modifier
                     .align(Alignment.BottomEnd)
                     .fillMaxWidth()
-                    .padding(top = scrollbarStyle.thickness)
+                    .padding(end = scrollbarStyle.thickness)
+
         )
         VerticalScrollbar(
             scrollState = scrollState,

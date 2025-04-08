@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.niloda.aicontext.intellij.ui.components.Col
 import com.niloda.aicontext.intellij.ui.components.Row
 import com.niloda.aicontext.intellij.ui.entry.Body2
@@ -37,8 +35,8 @@ fun FileRow(
     LaunchTimer(item, setElapsedTime)
 
     Row.VerticalCenter {
-        Col.Wide {
-            Row.Wide {
+        Col.Max {
+            Row.Max {
                 Tooltip({
                     RoundedSurface {
                         Body2(item.getDisplayPath(project))
