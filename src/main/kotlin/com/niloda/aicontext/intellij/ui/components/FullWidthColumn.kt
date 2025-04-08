@@ -75,10 +75,13 @@ object Col {
     inline fun Wide(
         modifier: Modifier = Modifier,
         content: @Composable ()->Unit
-    ) = FullWidthColumn(modifier) { content() }
+    ) {
+        FullWidthColumn(modifier) { content() }
+    }
 
 
     @Composable
     inline operator fun invoke(modifier: Modifier = Modifier, content: @Composable ()->Unit) =
         Column(modifier.debugBorder()) { content() }
 }
+
