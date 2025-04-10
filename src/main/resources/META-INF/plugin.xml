@@ -28,6 +28,11 @@
     <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="AI Context" anchor="right"
-                    factoryClass="com.niloda.aicontext.intellij.uibridge.AiProcessorWindowFactory"/>
+                    factoryClass="com.niloda.aicontext.intellij.uibridge.QueueWindowFactory"/>
     </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="AI Context Detail" anchor="bottom"
+                    factoryClass="com.niloda.aicontext.intellij.uibridge.DetailWindowFactory"/>
+    </extensions>
+
 </idea-plugin>

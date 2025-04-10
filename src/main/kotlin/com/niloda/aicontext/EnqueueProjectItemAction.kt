@@ -8,8 +8,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.niloda.aicontext.intellij.adapt.adapt
-import com.niloda.aicontext.intellij.uibridge.Facade
-import com.niloda.aicontext.intellij.uibridge.Facade.Companion.facade
+import com.niloda.aicontext.intellij.uibridge.QueueFacade.Companion.queueFacade
 
 class EnqueueProjectItemAction : AnAction() {
 
@@ -23,7 +22,7 @@ class EnqueueProjectItemAction : AnAction() {
         }
         when (psiElement) {
             is PsiFile -> {
-                project.facade.enqueueFile(psiElement.adapt())
+                project.queueFacade.enqueueFile(psiElement.adapt())
                 Messages.showInfoMessage(project, "Enqueued file: ${psiElement.name}", "AI Context")
             }
             is PsiDirectory -> {
@@ -33,7 +32,7 @@ class EnqueueProjectItemAction : AnAction() {
                     return
                 }
                 files.forEach { file ->
-                    project.facade.enqueueFile(file.adapt())
+                    project.queueFacade.enqueueFile(file.adapt())
                 }
                 Messages.showInfoMessage(project, "Enqueued ${files.size} file(s) from directory: ${psiElement.name}", "AI Context")
             }

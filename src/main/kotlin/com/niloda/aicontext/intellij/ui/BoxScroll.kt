@@ -21,6 +21,7 @@ import org.jetbrains.jewel.ui.component.VerticalScrollbar
  */
 @Composable
 fun BoxScroll(
+    tag: String = "",
     contents: @Composable ()->Unit
 ) {
     val scrollState = rememberScrollState()
@@ -28,12 +29,12 @@ fun BoxScroll(
     val scrollbarStyle = LocalScrollbarStyle.current
 
     Box.Max {
-        Col.Max("", Modifier.verticalScroll(scrollState).align(Alignment.TopEnd)) {
-            Row.Max("",Modifier.horizontalScroll(scrollStateH)) {
+        Col.Max(Modifier.verticalScroll(scrollState).align(Alignment.TopEnd)) {
+            Row.Max(Modifier.horizontalScroll(scrollStateH), {
                 Col.Max {
                     contents()
                 }
-            }
+            })
         }
         HorizontalScrollbar(
             scrollState = scrollStateH,

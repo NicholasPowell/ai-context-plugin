@@ -6,8 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.ui.Messages
 import com.niloda.aicontext.intellij.adapt.adapt
-import com.niloda.aicontext.intellij.uibridge.Facade
-import com.niloda.aicontext.intellij.uibridge.Facade.Companion.facade
+import com.niloda.aicontext.intellij.uibridge.QueueFacade.Companion.queueFacade
 
 class QueueFileAction : AnAction() {
 
@@ -27,7 +26,7 @@ class QueueFileAction : AnAction() {
             return
         }
 
-        project.facade.enqueueFile(psiFile.adapt())
+        project.queueFacade.enqueueFile(psiFile.adapt())
     }
 
     override fun update(e: AnActionEvent) {

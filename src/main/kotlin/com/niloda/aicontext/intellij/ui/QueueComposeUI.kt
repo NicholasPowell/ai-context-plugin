@@ -12,7 +12,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 
 @Composable
-inline fun AiProcessorComposeUI(
+inline fun QueueComposeUI(
     queueState: StateFlow<List<QueueItem>>,
     project: IProject,
     sendToAi: SendToAi,

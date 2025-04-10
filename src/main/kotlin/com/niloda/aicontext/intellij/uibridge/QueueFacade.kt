@@ -3,7 +3,7 @@ package com.niloda.aicontext.intellij.uibridge
 
 import com.intellij.openapi.project.Project
 import com.niloda.aicontext.intellij.adapt.adapt
-import com.niloda.aicontext.intellij.ui.AiProcessorComposeUI
+import com.niloda.aicontext.intellij.ui.QueueComposeUI
 import com.niloda.aicontext.intellij.ui.theme.DarculaTheme
 import com.niloda.aicontext.model.BackgroundSendToOllama
 import com.niloda.aicontext.model.EnqueueFile
@@ -16,7 +16,7 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import javax.swing.JComponent
 
-class Facade(
+class QueueFacade(
     val project: Project,
     val sendToAi: SendToAi,
     val dataStore: DataStore,
@@ -25,30 +25,30 @@ class Facade(
 ) {
 
     companion object {
-        val byProject: MutableMap<Project, Facade> = mutableMapOf()
-        val byName: MutableMap<String, Facade> = mutableMapOf()
+        val byProject: MutableMap<Project, QueueFacade> = mutableMapOf()
+        val byName: MutableMap<String, QueueFacade> = mutableMapOf()
 
-        val Project.facade: Facade get() = byProject[this]!!
-        val IProject.facade: Facade get() = byName[name]!!
+        val Project.queueFacade: QueueFacade get() = byProject[this]!!
+        val IProject.queueFacade: QueueFacade get() = byName[name]!!
 
         fun createPanel(proj: Project): JComponent {
             val dataStore = DataStore()
-            val facade = Facade(
+            val queueFacade = QueueFacade(
                 project = proj,
                 sendToAi = BackgroundSendToOllama(SendToOllama()),
                 dataStore = dataStore,
                 enqueueFile = EnqueueFile(dataStore),
                 toolWindow = ResultPersister(proj)
             )
-            byProject[proj] = facade
-            byName[proj.name] = facade
+            byProject[proj] = queueFacade
+            byName[proj.name] = queueFacade
             enableNewSwingCompositing()
             return JewelComposePanel({}) {
                 SwingBridgeTheme {
-                    AiProcessorComposeUI(
-                        queueState = facade.dataStore.queueFlow,
-                        project = facade.project.adapt(),
-                        sendToAi = facade.sendToAi,
+                    QueueComposeUI(
+                        queueState = queueFacade.dataStore.queueFlow,
+                        project = queueFacade.project.adapt(),
+                        sendToAi = queueFacade.sendToAi,
                         theme = { DarculaTheme(it) }
                     )
                 }

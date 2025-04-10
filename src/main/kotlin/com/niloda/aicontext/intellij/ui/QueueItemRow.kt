@@ -36,7 +36,7 @@ fun FileRow(
 
     Row.VerticalCenter {
         Col.Max {
-            Row.Max {
+            Row.Max(content = {
                 Tooltip({
                     RoundedSurface {
                         Body2(item.getDisplayPath(project))
@@ -48,7 +48,7 @@ fun FileRow(
                         Body2(elapsedTime)
                     }
                 }
-            }
+            })
         }
     }
 }

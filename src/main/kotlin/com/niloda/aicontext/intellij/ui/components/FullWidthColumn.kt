@@ -13,13 +13,12 @@ import androidx.compose.ui.platform.testTag
 import com.niloda.aicontext.intellij.ui.BuildConfig.debugBorder
 
 @Composable
-inline fun FullWidthColumn(tag: String, modifier: Modifier = Modifier, content: @Composable ()->Unit) {
+inline fun FullWidthColumn(modifier: Modifier = Modifier, content: @Composable ()->Unit) {
     Column(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .debugBorder()
-                .testTag(tag)
                 .background(MaterialTheme.colors.surface)
                 .then(modifier),
         verticalArrangement = Arrangement.Top,
@@ -29,13 +28,12 @@ inline fun FullWidthColumn(tag: String, modifier: Modifier = Modifier, content: 
     }
 }
 @Composable
-inline fun FullWidthRow(tag: String, modifier: Modifier = Modifier, content: @Composable ()->Unit) {
+inline fun FullWidthRow(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .debugBorder()
-                .testTag(tag)
                 .background(MaterialTheme.colors.surface)
                 .then(modifier)
     ) {
@@ -45,9 +43,9 @@ inline fun FullWidthRow(tag: String, modifier: Modifier = Modifier, content: @Co
 object Row {
     @Composable
     inline fun Max(
-        tag: String = "",
         modifier: Modifier = Modifier,
-        content: @Composable ()->Unit) = FullWidthRow(tag, modifier) { content() }
+        content: @Composable () -> Unit
+    ) = FullWidthRow(modifier, { content() })
 
     @Composable
     inline operator fun invoke(
@@ -75,11 +73,10 @@ object Row {
 object Col {
     @Composable
     inline fun Max(
-        tag: String = "",
         modifier: Modifier = Modifier,
         content: @Composable ()->Unit
     ) {
-        FullWidthColumn(tag, modifier) { content() }
+        FullWidthColumn(modifier) { content() }
     }
 
 

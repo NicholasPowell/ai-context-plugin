@@ -30,13 +30,13 @@ fun Group(
     val expandState = remember { mutableStateOf(true) }
     var isExpanded by expandState
     Col.Max {
-        Row.Max {
+        Row.Max(content = {
             ToggleIcon(
                 state = isExpanded withSetter { isExpanded = it },
                 onOff = Default.KeyboardArrowDown to Default.KeyboardArrowRight
             )
             Body1("$groupName (${items.size})")
-        }
+        })
         if (isExpanded) {
             Col(Modifier.padding(20.dp, 0.dp, 0.dp, 0.dp)) {
                 items.forEach { item ->
