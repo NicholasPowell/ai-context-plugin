@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.niloda.aicontext.intellij.ui.FileRow
+import com.niloda.aicontext.intellij.ui.queue.FileRow
 import com.niloda.aicontext.intellij.ui.components.Col
 import com.niloda.aicontext.intellij.ui.components.Row
 import com.niloda.aicontext.intellij.ui.components.ToggleIcon

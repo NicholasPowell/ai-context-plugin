@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class)
-package com.niloda.aicontext.intellij.ui
+
+package com.niloda.aicontext.intellij.ui.queue
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.niloda.aicontext.intellij.ui.RoundedSurface
+import com.niloda.aicontext.intellij.ui.Tooltip
 import com.niloda.aicontext.intellij.ui.components.Col
 import com.niloda.aicontext.intellij.ui.components.Row
 import com.niloda.aicontext.intellij.ui.entry.Body2

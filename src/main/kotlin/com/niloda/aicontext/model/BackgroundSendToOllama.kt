@@ -9,9 +9,9 @@ import kotlinx.coroutines.launch
 class BackgroundSendToOllama(val sendToOllama: SendToOllama): SendToAi {
     override operator fun invoke(item: QueueItem, project: IProject) {
         CoroutineScope(Dispatchers.IO).launch {
-            project.queueFacade.dataStore.add(item.copy(status = QueueItem.Status.RUNNING))
+            project.queueFacade.queueDataStore.add(item.copy(status = QueueItem.Status.RUNNING))
             val result = sendToOllama(item.prompt + (item.file.text ?: ""), project)
-            project.queueFacade.dataStore.add(item.copy(status = QueueItem.Status.DONE, result = result))
+            project.queueFacade.queueDataStore.add(item.copy(status = QueueItem.Status.DONE, result = result))
         }
     }
 }

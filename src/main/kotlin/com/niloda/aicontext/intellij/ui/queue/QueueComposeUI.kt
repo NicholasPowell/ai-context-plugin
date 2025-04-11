@@ -1,7 +1,9 @@
-package com.niloda.aicontext.intellij.ui
+package com.niloda.aicontext.intellij.ui.queue
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import com.niloda.aicontext.intellij.ui.BoxScroll
+import com.niloda.aicontext.intellij.ui.NoItemsInQueue
 import com.niloda.aicontext.intellij.ui.components.Box
 import com.niloda.aicontext.intellij.ui.entry.Group
 import com.niloda.aicontext.model.IProject

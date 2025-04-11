@@ -5,7 +5,7 @@ import com.niloda.aicontext.model.QueueItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class DataStore {
+class QueueDataStore {
     private val _queueFlow: MutableStateFlow<List<QueueItem>> =
         MutableStateFlow<List<QueueItem>>(listOf())
     val queueFlow: StateFlow<List<QueueItem>> = _queueFlow

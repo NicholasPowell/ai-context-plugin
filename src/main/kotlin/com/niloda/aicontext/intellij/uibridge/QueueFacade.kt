@@ -3,7 +3,7 @@ package com.niloda.aicontext.intellij.uibridge
 
 import com.intellij.openapi.project.Project
 import com.niloda.aicontext.intellij.adapt.adapt
-import com.niloda.aicontext.intellij.ui.QueueComposeUI
+import com.niloda.aicontext.intellij.ui.queue.QueueComposeUI
 import com.niloda.aicontext.intellij.ui.theme.DarculaTheme
 import com.niloda.aicontext.model.BackgroundSendToOllama
 import com.niloda.aicontext.model.EnqueueFile
@@ -19,7 +19,7 @@ import javax.swing.JComponent
 class QueueFacade(
     val project: Project,
     val sendToAi: SendToAi,
-    val dataStore: DataStore,
+    val queueDataStore: QueueDataStore,
     val enqueueFile: EnqueueFile,
     val toolWindow: ResultPersister
 ) {
@@ -32,12 +32,12 @@ class QueueFacade(
         val IProject.queueFacade: QueueFacade get() = byName[name]!!
 
         fun createPanel(proj: Project): JComponent {
-            val dataStore = DataStore()
+            val queueDataStore = QueueDataStore()
             val queueFacade = QueueFacade(
                 project = proj,
                 sendToAi = BackgroundSendToOllama(SendToOllama()),
-                dataStore = dataStore,
-                enqueueFile = EnqueueFile(dataStore),
+                queueDataStore = queueDataStore,
+                enqueueFile = EnqueueFile(queueDataStore),
                 toolWindow = ResultPersister(proj)
             )
             byProject[proj] = queueFacade
@@ -46,7 +46,7 @@ class QueueFacade(
             return JewelComposePanel({}) {
                 SwingBridgeTheme {
                     QueueComposeUI(
-                        queueState = queueFacade.dataStore.queueFlow,
+                        queueState = queueFacade.queueDataStore.queueFlow,
                         project = queueFacade.project.adapt(),
                         sendToAi = queueFacade.sendToAi,
                         theme = { DarculaTheme(it) }
