@@ -67,11 +67,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-desktop:2.8.7"){ exclude(group = "org.jetbrains.kotlinx") }
     implementation("com.squareup.okhttp3:okhttp:4.12.0") // For Ollama API calls
     implementation("org.json:json:20231013") // For JSONObject
+    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.11.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.0")
 }
 
 
-
 tasks {
+    test {
+        useJUnitPlatform()
+    }
     withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"
