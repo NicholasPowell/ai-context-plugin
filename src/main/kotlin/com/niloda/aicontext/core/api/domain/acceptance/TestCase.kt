@@ -1,5 +1,6 @@
 package com.niloda.aicontext.core.api.domain.acceptance
 
+import com.niloda.aicontext.core.api.domain.actions.Verify
 import com.niloda.aicontext.core.writeMeAnApi
 
 data class TestCase(
@@ -10,8 +11,8 @@ data class TestCase(
 )
 
 fun main() {
-    val result =  Deliver {
-        Deliver.Result.Approve(
+    val result = Verify {
+        Verify.Result.Approve(
             listOf(TestCase("id", "desc", "prcon", "result"))
         )
     }

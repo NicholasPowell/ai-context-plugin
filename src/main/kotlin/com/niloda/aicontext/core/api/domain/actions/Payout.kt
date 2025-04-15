@@ -1,8 +1,9 @@
-package com.niloda.aicontext.core.api.domain.acceptance
+package com.niloda.aicontext.core.api.domain.actions
 
 import com.niloda.aicontext.core.api.domain.Work
+import com.niloda.aicontext.core.api.domain.acceptance.TestCase
 
-fun interface Deliver {
+fun interface Payout {
     operator fun invoke(work: Work): Result
     sealed interface Result {
         val successfulCases: List<TestCase>
@@ -13,9 +14,3 @@ fun interface Deliver {
         ) : Result
     }
 }
-
-
-
-
-
-

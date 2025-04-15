@@ -1,12 +1,10 @@
 package com.niloda.aicontext.core.api.domain
 
-import com.niloda.aicontext.core.api.InMemoryWorkShop
-
-interface WorkShop {
-    fun addWorker(worker: Worker): InMemoryWorkShop
-    fun addWork(work: Work): InMemoryWorkShop
-    fun assign(work: Work, worker: Worker): InMemoryWorkShop
-    fun submit(work: Work): InMemoryWorkShop
-    fun approve(commission: Commission): InMemoryWorkShop
-    fun payout(commission: Commission): InMemoryWorkShop
+interface WorkShop<E> where E: WorkShop<E> {
+    fun addWorker(worker: Worker): E
+    fun addWork(work: Work): E
+    fun assign(work: Work, worker: Worker): E
+    fun submit(work: Work): E
+    fun approve(commission: Commission): E
+    fun payout(commission: Commission): E
 }
