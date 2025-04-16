@@ -6,8 +6,10 @@ import com.niloda.aicontext.core.api.domain.WorkShop
 import com.niloda.aicontext.core.api.domain.Worker
 import com.niloda.aicontext.core.api.domain.work
 
-
-val shop = InMemoryWorkShop()
+object BuildShop : BuildWorkShop<InMemoryWorkShop> {
+    override fun invoke(): WorkShop<InMemoryWorkShop> = InMemoryWorkShop()
+}
+val shop = BuildShop()
 val alice = Worker(id = "worker1", name = "Alice")
 fun main() {
     println(
@@ -65,20 +67,19 @@ data class InMemoryWorkShop(
     override fun submit(work: Work): InMemoryWorkShop =
         commissioned[work.id]?.let {
             copy(
-                commissioned = commissioned - work.id,
                 ready = ready + Pair(work.id, it)
             )
         } ?: this
 
-    override fun approve(commission: Commission): InMemoryWorkShop =
+    override fun approve(work: Work): InMemoryWorkShop =
         copy(
-            ready = ready - commission.work.id,
-            approved = approved + Pair(commission.work.id, commission)
+            ready = ready - work.id,
+            approved = approved + Pair(work.id, commissioned[work.id]!!)
         )
 
-    override fun payout(commission: Commission): InMemoryWorkShop =
+    override fun payout(work: Work): InMemoryWorkShop =
         copy(
-            approved = approved - commission.work.id,
-            completed = completed + Pair(commission.work.id, commission)
+            approved = approved - work.id,
+            completed = completed + Pair(work.id, commissioned[work.id]!!)
         )
 }
