@@ -58,8 +58,8 @@ data class InMemoryWorkShop(
                         Commission(
                             work = work,
                             worker = worker,
-                            approval = "no",
-                            payment = "none"
+                            acceptance = listOf(),
+                            compensation = "none"
                         )
                     )
         )
